@@ -42,7 +42,7 @@ function view(room,idx){
  const history=p.shots.map(pos=>({pos,hit:!!emap[pos]}));
  return {type:'state',code:room.code,me:idx,phase:room.phase,settings:room.settings,
   players:room.players.map((v,i)=>v?{name:v.name,ready:v.ready,connected:connected(v),score:scoreboard(room,v),turns:v.turns}:null),
-  placements:p.placements,ownMap,ownHits:e?e.shots:[],enemyRevealed,history,radars:p.radars,
+  placements:p.placements,ownMap,ownHits:e?e.shots:[],ownImpacts:e?e.shots.map(pos=>({pos,hit:!!ownMap[pos]})):[],enemyRevealed,history,radars:p.radars,
   completed,active:room.active,timers:room.timers,turn:p.turns+1,
   winner:room.winner,endReason:room.endReason,log:room.log,countdownRemaining:room.phase==='countdown'?Math.max(0,room.countdownEndsAt-Date.now()):0,
   waiting:room.phase==='playing'&&(!connected(room.players[0])||!connected(room.players[1]))};

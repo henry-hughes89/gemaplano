@@ -264,6 +264,12 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
  main{padding:5px 8px}.roombar{min-height:38px}.sidePanel{gap:5px}.scoreCard{min-height:70px;padding:5px}.actionPanel{gap:4px;padding:7px}.actionHint{display:none}.completeItem{min-height:32px;padding:3px}.completeList{gap:3px}.infoButtons button{min-height:29px}
 }
 @media(max-height:520px){.provisional,#modeTop{display:none}.boardPanel{padding:4px}.sidePanel{gap:4px}.scoreCard{min-height:46px}.legend{display:none}.boardPanel{grid-template-rows:24px minmax(0,1fr)}.completeList{display:flex}.completeItem{font-size:0;min-height:22px}.completeItem span:last-child{display:none}.hero ul{display:none}}
+/* v8: audio toggle, discoveries and legibility */
+.soundToggle{padding:7px 12px;min-height:34px;border:1px solid #6d806b;background:#1b3026;color:#d6decd;border-radius:999px;font-size:12px;box-shadow:none;white-space:nowrap}
+.soundToggle.on{background:#34563c;border-color:#8fdbab;color:#d7ffe6}
+.mineral-fragment{filter:drop-shadow(0 0 4px rgba(241,246,229,.32))}
+.own-hit-ring{filter:drop-shadow(0 0 5px #ffb78499)}
+@media(max-width:560px){.soundToggle{font-size:11px;padding:6px 8px;min-height:30px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.discovery{transition:none}}
 
 
@@ -342,6 +348,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
     </div>
     <div class="statusline">
       <button id="homeNavBtn" class="ghost homeNav hidden" type="button">⌂ Inicio</button>
+      <button id="soundToggle" class="soundToggle" type="button" aria-pressed="false" aria-label="Activar sonido">♫ Sonido: no</button>
       <span id="netStatus" class="pill offline">● Conectando…</span>
     </div>
   </header>
@@ -507,6 +514,30 @@ const X=x=>PAD+(x-MIN)*CELL, Y=y=>PAD+(MAX-y)*CELL;
 const save=(k,v)=>{try{localStorage.setItem(k,v)}catch{}}; const load=k=>{try{return localStorage.getItem(k)}catch{return null}};
 let ws=null,state=null,prevState=null,sessionRoom='',myToken='',homeTab='create',createMode='timed',selectedGem='perla',setupRotation=0,setupHover=null,setupAnchor=null,modalKind='',netConnected=false,retryCount=0,battleNoticeTimer=0,radarPulse=null,lastShotPulse=null;
 let discoveryTimeout=null, digFxTimeout=null,showHome=false,setupPendingAction='',countdownEndsAtClient=0,countdownFrame=0;
+// Sonidos originales sintetizados en el navegador (sin archivos externos).
+let soundEnabled=load('gemaplano_sound')==='1', audioContext=null;
+function updateSoundToggle(){const b=$('soundToggle');b.textContent=soundEnabled?'♫ Sonido: sí':'♫ Sonido: no';b.classList.toggle('on',soundEnabled);b.setAttribute('aria-pressed',String(soundEnabled));b.setAttribute('aria-label',soundEnabled?'Desactivar sonido':'Activar sonido');}
+function audioReady(){if(!soundEnabled)return false;try{if(!audioContext){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioContext=new AC();}if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});return true;}catch{return false;}}
+function tone(freq,delay,duration,volume=.06,kind='sine',slide=1){if(!audioContext)return;const t=audioContext.currentTime+delay;
+ const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type=kind;osc.frequency.setValueAtTime(freq,t);if(slide!==1)osc.frequency.exponentialRampToValueAtTime(Math.max(20,freq*slide),t+duration);
+ gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(volume,t+.015);gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+duration+.02);}
+function scratch(delay=0,volume=.028,duration=.09){if(!audioContext)return;const samples=Math.round(audioContext.sampleRate*duration),buffer=audioContext.createBuffer(1,samples,audioContext.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<samples;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/samples*5);const src=audioContext.createBufferSource(),gain=audioContext.createGain(),filter=audioContext.createBiquadFilter();src.buffer=buffer;filter.type='lowpass';filter.frequency.value=1600;gain.gain.value=volume;src.connect(filter);filter.connect(gain);gain.connect(audioContext.destination);src.start(audioContext.currentTime+delay);}
+function playCue(name){if(!audioReady())return;
+ if(name==='miss'){scratch(0,.035,.12);tone(172,.035,.14,.018,'triangle',.70);}
+ else if(name==='hit'){scratch(0,.027,.08);tone(659,.08,.22,.075,'sine',1.04);tone(987,.16,.29,.046,'sine',1.02);}
+ else if(name==='complete'){scratch(0,.034,.12);[523,659,784,1046].forEach((f,i)=>tone(f,.10+i*.13,.44,.062,'sine',1.005));tone(1568,.59,.76,.05,'triangle');}
+ else if(name==='radar'){tone(410,0,.50,.052,'sine',1.85);tone(760,.48,.22,.038,'sine',1.04);}
+ else if(name==='rival-hit'){tone(310,0,.19,.038,'triangle',.74);tone(226,.16,.23,.028,'sine');}
+ else if(name==='rival-miss'){tone(340,0,.11,.022,'sine');}
+ else if(name==='rival-complete'){tone(325,0,.25,.05,'triangle');tone(256,.28,.40,.047,'triangle');}
+ else if(name==='start'){tone(523,0,.17,.038);tone(784,.18,.28,.05);}
+ else if(name==='end'){tone(440,0,.23,.028,'sine');}
+}
+function toggleSound(){soundEnabled=!soundEnabled;if(soundEnabled&&!audioReady()){soundEnabled=false;toast('El navegador no permite reproducir sonido.');}save('gemaplano_sound',soundEnabled?'1':'0');updateSoundToggle();if(soundEnabled)playCue('hit');}
+$('soundToggle').onclick=toggleSound;
+updateSoundToggle();
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),2400);}
 function gemById(id){return GEMS.find(g=>g.id===id)}
 function rotate(cells,r){let pts=cells.map(([x,y])=>[x,y]);for(let i=0;i<((r%4)+4)%4;i++)pts=pts.map(([x,y])=>[-y,x]);const minX=Math.min(...pts.map(p=>p[0])),minY=Math.min(...pts.map(p=>p[1]));return pts.map(([x,y])=>[x-minX,y-minY]);}
@@ -529,21 +560,23 @@ function ingestState(next){
  if(next.phase==='countdown'&&old?.phase!=='countdown')countdownEndsAtClient=performance.now()+(next.countdownRemaining||3300);
  detectEvents(old,next);render();
 }
-function detectEvents(old,next){if(!old||old.phase!==next.phase){if(next.phase==='playing')showNotice(`Comienza la partida. ${next.players[next.active]?.name||'Jugador'} juega primero.`, 'hit', 2400);}if(!old)return;
+function detectEvents(old,next){if(!old||old.phase!==next.phase){if(next.phase==='playing'){showNotice(`Comienza la partida. ${next.players[next.active]?.name||'Jugador'} juega primero.`, 'hit', 2400);playCue('start');}}if(!old)return;
+ let soundCue='';
  // my new shot
  const oldHistLen=old.history?.length||0,newHistLen=next.history?.length||0;
  if(newHistLen>oldHistLen){const last=next.history[newHistLen-1];lastShotPulse={x:Number(last.pos.split(',')[0]),y:Number(last.pos.split(',')[1]),kind:last.hit?'hit':'miss',until:Date.now()+1400};
    startDigFx(last.hit?'hit':'miss',Number(last.pos.split(',')[0]),Number(last.pos.split(',')[1]));
-   if(last.hit)showNotice('¡Veta mineral localizada!', 'hit', 1900); else showNotice('Solo roca en ese punto.', '', 1450);
+   if(last.hit){showNotice(`¡Mineral en (${last.pos})! +1 nodo`, 'hit', 1900);soundCue='hit';}else{showNotice(`Roca vacía en (${last.pos}).`, '', 1450);soundCue='miss';}
  }
- const oldCompleted=new Set(old.completed||[]);const gained=(next.completed||[]).filter(id=>!oldCompleted.has(id));if(gained.length){showNotice('¡Gema reconstruida!', 'win', 3200); queueDiscovery(gained[0],false);} 
+ const oldCompleted=new Set(old.completed||[]);const gained=(next.completed||[]).filter(id=>!oldCompleted.has(id));if(gained.length){showNotice('¡Gema reconstruida!', 'win', 3200); queueDiscovery(gained[0],false);soundCue='complete';} 
  // rival hits on my board
  const oldOwnHit=(old.ownHits||[]).length,newOwnHit=(next.ownHits||[]).length;
- if(newOwnHit>oldOwnHit){const pos=next.ownHits[newOwnHit-1];const [x,y]=pos.split(',').map(Number);lastShotPulse={x,y,kind:'rival',until:Date.now()+1500,onOwn:true};showNotice('Tu rival encontró un fragmento de tu yacimiento.', 'alert', 1800); flashMineIndicator();} 
+ if(newOwnHit>oldOwnHit){const pos=next.ownHits[newOwnHit-1];const [x,y]=pos.split(',').map(Number),hit=!!myMineMap(next)[pos];lastShotPulse={x,y,kind:hit?'rival-hit':'rival-miss',until:Date.now()+1500,onOwn:true};showNotice(hit?`¡Tu rival halló un mineral en (${pos})!`:`Tu rival excavó roca vacía en (${pos}).`,hit?'alert':'',1800);flashMineIndicator();soundCue=hit?'rival-hit':'rival-miss';} 
  const oldRadar=(old.radars||[]).length,newRadar=(next.radars||[]).length;
- if(newRadar>oldRadar){const r=next.radars[newRadar-1];radarPulse={x:r.x,y:r.y,n:r.n,until:Date.now()+2800};showNotice(`Radar geológico · ${r.n} ${r.n===1?'señal':'señales'} en 9 nodos`, 'win', 3000);} 
- const oldOwnComp=ownCompleted(old), newOwnComp=ownCompleted(next);const oldOwnSet=new Set(oldOwnComp);const lostMsg=newOwnComp.filter(id=>!oldOwnSet.has(id));if(lostMsg.length){showNotice('El rival completó un mineral de tu mina.', 'alert',2400); queueDiscovery(lostMsg[0],true);}
- if(old.phase!=='ended'&&next.phase==='ended'){if(next.winner===-1)showNotice('La partida terminó en empate.', 'win', 2800); else if(next.winner===next.me)showNotice('¡Ganaste la partida!', 'win', 2800); else showNotice('La partida terminó. Ganó tu rival.', 'alert', 2800);} }
+ if(newRadar>oldRadar){const r=next.radars[newRadar-1];radarPulse={x:r.x,y:r.y,n:r.n,until:Date.now()+2800};showNotice(`Radar geológico · ${r.n} ${r.n===1?'señal':'señales'} en 9 nodos`, 'win', 3000);soundCue='radar';setTimeout(()=>{if(state&&state.phase!=='setup')drawEnemyBoard();},2850);} 
+ const oldOwnComp=ownCompleted(old), newOwnComp=ownCompleted(next);const oldOwnSet=new Set(oldOwnComp);const lostMsg=newOwnComp.filter(id=>!oldOwnSet.has(id));if(lostMsg.length){showNotice('El rival completó un mineral de tu mina.', 'alert',2400); queueDiscovery(lostMsg[0],true);soundCue='rival-complete';}
+ if(old.phase!=='ended'&&next.phase==='ended'){if(next.winner===-1)showNotice('La partida terminó en empate.', 'win', 2800); else if(next.winner===next.me)showNotice('¡Ganaste la partida!', 'win', 2800); else showNotice('La partida terminó. Ganó tu rival.', 'alert', 2800);if(!gained.length&&!lostMsg.length)soundCue='end';}
+ if(soundCue)playCue(soundCue); }
 function startDigFx(kind='hit',x=0,y=0){
  const el=$('digFx'),rect=$('enemyBoard').getBoundingClientRect();el.style.left=(rect.left+X(x)/460*rect.width)+'px';el.style.top=(rect.top+Y(y)/460*rect.height-65)+'px';el.style.right='auto';el.className='dig-fx active '+kind;$('digLabel').textContent=kind==='hit'?'¡MINERAL!':'ROCA VACÍA';
  clearTimeout(digFxTimeout);digFxTimeout=setTimeout(()=>el.classList.remove('active'),1000);
@@ -597,9 +630,9 @@ function renderGemButtons(){ $('gemList').innerHTML=GEMS.map(g=>{const done=!!st
 
 function boardCellFromEvent(svg,ev){const rect=svg.getBoundingClientRect();const px=(ev.clientX-rect.left)/rect.width*460, py=(ev.clientY-rect.top)/rect.height*460;let x=Math.round((px-PAD)/CELL)+MIN, y=MAX-Math.round((py-PAD)/CELL); if(x<MIN||x>MAX||y<MIN||y>MAX)return null; return {x,y};}
 function jewelCell(cx,cy,color,fragment=false,scale=1){
- const r=13.5*scale;const c=fragment?'#8e9696':color;const opacity=fragment?.86:1;
- return `<g transform="translate(${cx},${cy})" opacity="${opacity}" filter="url(#jewelDrop)">
- <polygon points="0,-${r} ${r*.8},-${r*.34} ${r*.72},${r*.58} 0,${r} -${r*.72},${r*.58} -${r*.8},-${r*.34}" fill="${c}" stroke="${fragment?'#d4d6d1':'#f5f6e9'}" stroke-width="1.1"/>
+ const r=13.9*scale;const c=fragment?'#b9c5c4':color;const opacity=1;
+ return `<g data-mineral="${fragment?'fragment':'gema'}" class="${fragment?'mineral-fragment':'full-gem'}" transform="translate(${cx},${cy})" opacity="${opacity}" filter="url(#jewelDrop)">
+ <polygon points="0,-${r} ${r*.8},-${r*.34} ${r*.72},${r*.58} 0,${r} -${r*.72},${r*.58} -${r*.8},-${r*.34}" fill="${c}" stroke="${fragment?'#f0f8ee':'#f5f6e9'}" stroke-width="${fragment?1.9:1.1}"/>
  <path d="M0,-${r} L${r*.21},-${r*.10} L0,${r*.62} L-${r*.21},-${r*.10}Z" fill="#ffffff" opacity="${fragment?.28:.67}"/>
  <path d="M-${r*.8},-${r*.34}L-${r*.21},-${r*.1}L0,${r*.62}L-${r*.72},${r*.58}Z" fill="#000" opacity=".32"/>
  <path d="M${r*.8},-${r*.34}L${r*.21},-${r*.1}L0,${r*.62}L${r*.72},${r*.58}Z" fill="#000" opacity=".20"/>
@@ -667,7 +700,12 @@ function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=ba
  }
  // history misses and hits
  for(const h of state?.history||[]){const [x,y]=h.pos.split(',').map(Number); if(!h.hit) out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`; }
- for(const [pos,id] of Object.entries(state?.enemyRevealed||{})){const [x,y]=pos.split(',').map(Number); if(id==='fragment') out+=jewelCell(X(x),Y(y),'#b4acba',true,1); else out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1);} 
+ // Every confirmed hit gets a visible fragment; history is a safe fallback if a state lacks its visual map.
+ const found={...(state?.enemyRevealed||{})};for(const h of state?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
+ for(const [pos,id] of Object.entries(found)){const [x,y]=pos.split(',').map(Number); const fragment=id==='fragment';
+  out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="17.6" fill="${fragment?'#c1ead3':'#f9db9c'}" fill-opacity="${fragment?.15:.12}"/>`;
+  out+=jewelCell(X(x),Y(y),fragment?'#b9c5c4':gemById(id)?.color||'#fff',fragment,1.12);
+ } 
  // shot pulse
  if(lastShotPulse&&Date.now()<lastShotPulse.until&&!lastShotPulse.onOwn){
  const {x,y,kind}=lastShotPulse;const cx=X(x),cy=Y(y),col=kind==='miss'?'#b5b5a9':'#ffe0a3';
@@ -677,12 +715,26 @@ function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=ba
 }
  if(radarPulse && Date.now()<radarPulse.until){out+=`<rect x="${X(radarPulse.x-1)-17}" y="${Y(radarPulse.y+1)-17}" width="102" height="102" rx="18" fill="rgba(255,236,184,.06)" stroke="#8feec5" stroke-width="2" stroke-dasharray="8 6"/>`; for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++) out+=`<circle class="radar-node pulse" cx="${X(radarPulse.x+dx)}" cy="${Y(radarPulse.y+dy)}" r="10" fill="rgba(143,238,197,.16)" stroke="#8feec5" stroke-width="1.8"/>`; out+=`<g><circle cx="${X(radarPulse.x)}" cy="${Y(radarPulse.y+1)-28}" r="16" fill="rgba(78,145,114,.92)" stroke="#d7fff0" stroke-width="1.7"/><text x="${X(radarPulse.x)}" y="${Y(radarPulse.y+1)-22}" text-anchor="middle" font-size="17" font-weight="900" fill="#f7fffb">${radarPulse.n}</text></g>`; }
  svg.innerHTML=out; }
-function drawModalBoard(kind){const svg=$('modalBoard'); let out=baseGrid(); if(kind==='myBoard'){for(const [pos,id] of Object.entries(state.ownMap||{})){const [x,y]=pos.split(',').map(Number); out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1);} for(const pos of state.ownHits||[]){const [x,y]=pos.split(',').map(Number); out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="19" fill="none" stroke="#ff9ab1" stroke-width="3" stroke-dasharray="5 4"/>`; if(lastShotPulse&&lastShotPulse.onOwn&&Date.now()<lastShotPulse.until&&lastShotPulse.x===x&&lastShotPulse.y===y) out+=`<circle class="pulse" cx="${X(x)}" cy="${Y(y)}" r="23" fill="none" stroke="#ffd1dc" stroke-width="3"/>`; }
+function myMineMap(snapshot=state){const m={...(snapshot?.ownMap||{})};for(const g of GEMS){const p=snapshot?.placements?.[g.id];if(!p)continue;for(const [x,y] of gemPoints(g.id,p.x,p.y,p.r))m[key(x,y)]=g.id;}return m;}
+function myMineImpacts(snapshot=state){const m=myMineMap(snapshot);return (snapshot?.ownImpacts||snapshot?.ownHits?.map(pos=>({pos,hit:!!m[pos]}))||[]).map(h=>({pos:h.pos,hit:!!h.hit}));}
+function drawModalBoard(kind){const svg=$('modalBoard');let out=baseGrid();
+ if(kind==='myBoard'){
+  const placements=myMineMap(),impacts=myMineImpacts();
+  for(const [pos,id] of Object.entries(placements)){const [x,y]=pos.split(',').map(Number);out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1.08);}
+  for(const h of impacts){const [x,y]=h.pos.split(',').map(Number),cx=X(x),cy=Y(y);
+   if(h.hit){out+=`<g data-own-impact="hit"><circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="#ffc78c" stroke-width="2.8"/><path d="M${cx-4} ${cy-12}l7 9 -4 6 6 9" fill="none" stroke="#50221e" stroke-width="2.7" stroke-linejoin="round"/><path d="M${cx-4} ${cy-12}l7 9 -4 6 6 9" fill="none" stroke="#ffe1b1" stroke-width="1.4" stroke-linejoin="round"/></g>`;}
+   else {out+=`<path data-own-impact="miss" d="M${cx-8} ${cy-8}l16 16m0-16l-16 16" fill="none" stroke="#ffa0a5" stroke-width="3.2" stroke-linecap="round"/>`;}
+  }
+  if(lastShotPulse?.onOwn&&Date.now()<lastShotPulse.until){out+=`<circle class="pulse own-hit-ring" cx="${X(lastShotPulse.x)}" cy="${Y(lastShotPulse.y)}" r="24" fill="none" stroke="#ffe0b8" stroke-width="3"/>`;}
  }
- else if(kind==='history'){for(const h of state.history||[]){const [x,y]=h.pos.split(',').map(Number); if(h.hit){const id=state.enemyRevealed[h.pos]||'fragment'; out+=jewelCell(X(x),Y(y),id==='fragment'?'#b4acba':gemById(id)?.color||'#fff',id==='fragment',1);} else out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`;}}
- else if(kind==='rules'){/* show empty board only */}
- svg.innerHTML=out; }
-function openModal(kind){modalKind=kind; $('modalWrap').classList.add('open'); $('modalWrap').setAttribute('aria-hidden','false'); if(kind==='myBoard'){ $('modalTitle').textContent='Mi tablero'; $('modalSub').textContent='Así están ubicadas tus gemas y los impactos recibidos.'; $('modalBoardTitle').textContent='Mis gemas'; $('modalSideTitle').textContent='Resumen'; $('modalBadge').textContent=`${(state.ownHits||[]).length} impactos`; $('modalSide').innerHTML=`<div class="compactCard"><strong>${state.players[state.me].name}</strong><p class="muted small">Gemas dañadas por el rival: <b>${(state.ownHits||[]).length}</b></p><p class="muted small">Gemas completadas por tu rival: <b>${ownCompleted(state).length}</b></p></div><div class="compactCard"><strong>Log</strong><ol class="logList">${(state.log||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`; }
+ else if(kind==='history'){
+  const found={...(state?.enemyRevealed||{})};for(const h of state?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
+  for(const h of state.history||[]){const [x,y]=h.pos.split(',').map(Number);if(h.hit){const id=found[h.pos];out+=jewelCell(X(x),Y(y),id==='fragment'?'#b9c5c4':gemById(id)?.color||'#fff',id==='fragment',1.1);}else out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`;}
+ }
+ svg.innerHTML=out;
+}
+
+function openModal(kind){modalKind=kind; $('modalWrap').classList.add('open'); $('modalWrap').setAttribute('aria-hidden','false'); if(kind==='myBoard'){ $('modalTitle').textContent='Mi tablero'; $('modalSub').textContent='Así están ubicadas tus gemas y los impactos recibidos.'; $('modalBoardTitle').textContent='Mis gemas'; $('modalSideTitle').textContent='Resumen'; $('modalBadge').textContent=`${myMineImpacts().length} excavaciones`; $('modalSide').innerHTML=`<div class="compactCard"><strong>${esc(state.players[state.me].name)} · tus siete gemas</strong><p class="muted small">◆ Gemas de color: tus ${Object.keys(myMineMap()).length}/26 nodos enterrados</p><p class="muted small">◉ Contorno dorado y grieta: mineral acertado (${myMineImpacts().filter(h=>h.hit).length})</p><p class="muted small">✕ Cruz rosa: roca vacía (${myMineImpacts().filter(h=>!h.hit).length})</p><p class="muted small">Gemas totalmente encontradas por tu rival: <b>${ownCompleted(state).length}/7</b></p></div><div class="compactCard"><strong>Movimientos recientes</strong><ol class="logList">${myMineImpacts().slice().reverse().slice(0,8).map(h=>`<li>(${h.pos}) · ${h.hit?'Fragmento encontrado':'Roca vacía'}</li>`).join('')||'<li>Todavía no han excavado en tu mina.</li>'}</ol></div>`; }
  if(kind==='history'){ $('modalTitle').textContent='Historial'; $('modalSub').textContent='Tus exploraciones sobre el tablero rival.'; $('modalBoardTitle').textContent='Tiros realizados'; $('modalSideTitle').textContent='Detalle'; $('modalBadge').textContent=`${state.history.length} tiros`; $('modalSide').innerHTML=`<div class="compactCard"><strong>Resumen</strong><p class="muted small">Aciertos: <b>${state.players[state.me].score.points}</b></p><p class="muted small">Fallos: <b>${state.players[state.me].score.misses}</b></p></div><div class="compactCard"><ol class="logList">${state.history.slice().reverse().map(h=>`<li class="mono">(${h.pos}) · ${h.hit?'hallazgo':'sin gema'}</li>`).join('')}</ol></div>`; }
  if(kind==='rules'){ $('modalTitle').textContent='Reglas rápidas'; $('modalSub').textContent='Resumen compacto de la partida.'; $('modalBoardTitle').textContent='Plano'; $('modalSideTitle').textContent='Cómo se juega'; $('modalBadge').textContent='Ayuda'; $('modalSide').innerHTML=`<div class="compactCard"><ul class="logList"><li>Busca nodos del rival escribiendo pares ordenados.</li><li>El radar 3×3 aparece en los turnos 5, 10, 15…</li><li>Las gemas se muestran grises hasta completarlas.</li><li>Gana quien descubra todas las gemas rivales o tenga más puntos cuando acaben ambos relojes.</li></ul></div>`; }
  drawModalBoard(kind); }
@@ -694,7 +746,7 @@ function renderPlay(){const me=state.players[state.me], op=state.players[1-state
   window._mode=window._mode||'shot'; if(window._mode==='radar'&&!canRadar)window._mode='shot'; $('shotModeBtn').classList.toggle('active',window._mode==='shot'); $('radarModeBtn').classList.toggle('active',window._mode==='radar'); $('radarModeBtn').classList.toggle('radar-ready',canRadar);
  $('actionBtn').disabled=!myTurn||end; $('radarModeBtn').disabled=!canRadar; $('shotModeBtn').disabled=!myTurn||end; $('coordPreview').textContent=`(${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
  $('actionBtn').textContent=(window._mode==='radar'?'◈ Activar radar':'⛏ Excavar')+` (${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
- $('actionHint').textContent=end?'La partida terminó. Puedes revisar tableros o crear otra sala.':state.waiting?'Esperando la reconexión del rival.':window._mode==='radar'?(canRadar?'El radar resaltará esa zona 3×3 y contará señales.':'El radar vuelve a estar disponible en un turno múltiplo de 5.'):'Escribe el punto donde quieres excavar. Si completas una gema, se revelará a color.';
+ $('actionHint').textContent=end?'La partida terminó. Puedes revisar tableros o crear otra sala.':state.waiting?'Esperando la reconexión del rival.':window._mode==='radar'?(canRadar?'El radar resaltará esa zona 3×3 y contará señales.':'El radar vuelve a estar disponible en un turno múltiplo de 5.'):(state.history?.length?(()=>{const last=state.history[state.history.length-1];return last.hit?`◆ Acierto en (${last.pos}): fragmento gris · +1 nodo`:`✕ Roca vacía en (${last.pos})`;})():'Escribe el punto donde quieres excavar. Los aciertos aparecen como gemas grises.');
  $('completeCount').textContent=`${state.completed.length}/7`; $('completeList').innerHTML=GEMS.map(g=>`<div class="completeItem ${state.completed.includes(g.id)?'done':''}"><span class="gemChip" style="background:${state.completed.includes(g.id)?g.color:'#c9bed1'}"></span><span>${state.completed.includes(g.id)?g.name:'Oculta'}</span></div>`).join('');
  drawEnemyBoard(); }
 function renderSetup(){renderGemButtons();const placed=Object.keys(state.placements).length,me=state.players[state.me],ready=me.ready;

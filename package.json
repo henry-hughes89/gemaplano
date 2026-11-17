@@ -5,8 +5,11 @@
   "description": "Duelo 1vs1 de coordenadas para 7.º básico",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests.js"
+    "test": "node tests.js",
+    "test:network": "node tests-network.js"
   },
   "dependencies": {},
-  "engines": {"node": ">=18"}
+  "engines": {
+    "node": ">=18"
+  }
 }

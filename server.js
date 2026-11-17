@@ -3,10 +3,11 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
 const {WebSocketServer,WebSocket}=require('./websocket-lite');
 const L=require('./game-logic');
 const PORT=Number(process.env.PORT||3000);
+const VERSION='9.0.0';
 const rooms=new Map();
 const srv=http.createServer((req,res)=>{
   const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`);
-  if(url.pathname==='/api/health'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({ok:true,rooms:rooms.size}));}
+  if(url.pathname==='/api/health'||url.pathname==='/api/version'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({ok:true,version:VERSION,rooms:rooms.size}));}
   if(url.pathname!=='/'&&url.pathname!=='/index.html'){res.writeHead(404);return res.end('No encontrado');}
   fs.readFile(path.join(__dirname,'public','index.html'),(err,data)=>{if(err){res.writeHead(500);return res.end('Error');}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(data);});
 });
@@ -29,7 +30,7 @@ function syncClock(room){
  if(room.phase!=='playing'||room.settings.mode!=='timed')return;
  if(!connected(room.players[0])||!connected(room.players[1])){room.lastTick=0;return;}
  const now=Date.now();if(!room.lastTick){room.lastTick=now;return;}
- const elapsed=Math.min(now-room.lastTick,5000);room.lastTick=now;
+ const elapsed=Math.max(0,now-room.lastTick);room.lastTick=now;
  const p=room.active;room.timers[p]=Math.max(0,room.timers[p]-elapsed);
  if(room.timers[p]<=0){announce(room,`${room.players[p].name} agotó su tiempo.`);
   const other=1-p;if(room.timers[other]<=0)end(room,'time');else{room.active=other;room.lastTick=now;}}
@@ -40,14 +41,15 @@ function view(room,idx){
  const emap=e?L.pointMap(e.placements):{};
  const enemyRevealed={};for(const [pos,id] of Object.entries(emap))if(p.shots.includes(pos))enemyRevealed[pos]=completed.includes(id)?id:'fragment';
  const history=p.shots.map(pos=>({pos,hit:!!emap[pos]}));
- return {type:'state',code:room.code,me:idx,phase:room.phase,settings:room.settings,
+ return {type:'state',version:VERSION,code:room.code,me:idx,phase:room.phase,settings:room.settings,
   players:room.players.map((v,i)=>v?{name:v.name,ready:v.ready,connected:connected(v),score:scoreboard(room,v),turns:v.turns}:null),
   placements:p.placements,ownMap,ownHits:e?e.shots:[],ownImpacts:e?e.shots.map(pos=>({pos,hit:!!ownMap[pos]})):[],enemyRevealed,history,radars:p.radars,
   completed,active:room.active,timers:room.timers,turn:p.turns+1,
-  winner:room.winner,endReason:room.endReason,log:room.log,countdownRemaining:room.phase==='countdown'?Math.max(0,room.countdownEndsAt-Date.now()):0,
+  winner:room.winner,endReason:room.endReason,log:room.log,countdownRemaining:room.phase==='countdown'?Math.max(0,room.countdownEndsAt-Date.now()):0,revealRemaining:room.phase==='reveal'?Math.max(0,room.revealEndsAt-Date.now()):0,
   waiting:room.phase==='playing'&&(!connected(room.players[0])||!connected(room.players[1]))};
 }
 function broadcast(room){room.updated=Date.now();room.players.forEach((p,i)=>{if(p)send(p.ws,view(room,i));});}
+function broadcastClock(room){room.updated=Date.now();const payload={type:'clock',timers:room.timers.slice(),active:room.active,phase:room.phase,waiting:!room.players.every(connected)};room.players.forEach(p=>{if(p)send(p.ws,payload);});}
 function resumePlayer(ws,room,p,idx){if(p.ws&&p.ws!==ws&&p.ws.readyState===WebSocket.OPEN)p.ws.close(4000,'Sesión abierta en otro dispositivo');p.ws=ws;ws.room=room.code;ws.player=idx;send(ws,{type:'session',room:room.code,token:p.token,me:idx});announce(room,`${p.name} está en la sala.`);room.lastTick=0;broadcast(room);}
 function create(ws,m){const room={code:code(),phase:'setup',settings:{mode:m.mode==='free'?'free':'timed',minutes:Math.min(30,Math.max(1,Math.floor(Number(m.minutes)||10)))},players:[makePlayer(m.name),null],active:0,timers:[0,0],winner:null,endReason:null,log:[],lastTick:0,updated:Date.now()};rooms.set(room.code,room);resumePlayer(ws,room,room.players[0],0);}
 function join(ws,m){const key=String(m.room||'').toUpperCase().replace(/[^A-Z0-9]/g,'');const room=rooms.get(key);if(!room)return error(ws,'Sala inexistente o expirada.');
@@ -62,7 +64,7 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
  const room=rooms.get(ws.room),idx=ws.player,p=room?.players[idx];if(!room||!p||p.ws!==ws)return error(ws,'Sesión no válida.');
  syncClock(room);
  if(m.type==='leave'){
-  if(room.phase==='playing'||room.phase==='countdown'){
+  if(room.phase==='playing'||room.phase==='countdown'||room.phase==='reveal'){
    end(room,'withdraw',1-idx);
    announce(room,`${p.name} abandonó la partida.`);
    p.ws=null;ws.room=null;ws.player=null;
@@ -109,11 +111,12 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
   if(room.active!==idx)return error(ws,'Todavía no es tu turno.');
   const x=m.x,y=m.y;if(!Number.isInteger(x)||!Number.isInteger(y)||x<L.MIN||x>L.MAX||y<L.MIN||y>L.MAX)return error(ws,'Las coordenadas deben ser enteros entre −5 y 5.');
   const enemy=room.players[1-idx],pos=L.key(x,y),nextTurn=p.turns+1;
+  let justComplete=[];
   if(m.type==='shot'){
    if(p.shots.includes(pos))return error(ws,'Ya exploraste esas coordenadas.');
    p.shots.push(pos);const hit=!!L.pointMap(enemy.placements)[pos];if(!hit)p.misses++;
    const newCompleted=L.completedGems(enemy.placements,p.shots);
-   const justComplete=newCompleted.filter(g=>!L.completedGems(enemy.placements,p.shots.slice(0,-1)).includes(g));
+   justComplete=newCompleted.filter(g=>!L.completedGems(enemy.placements,p.shots.slice(0,-1)).includes(g));
    announce(room,`${p.name} exploró (${x}, ${y}): ${hit?'¡fragmento encontrado!':'sin gema'}.${justComplete.length?' Gema completada: '+justComplete.map(id=>L.GEMS.find(g=>g.id===id).name).join(', ')+'.':''}`);
   }else{
    if(nextTurn%5!==0)return error(ws,'El radar solo se habilita en los turnos propios 5, 10, 15, ...');
@@ -122,7 +125,12 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
   }
   p.turns++;
   if(scoreboard(room,p).points===L.TOTAL){end(room,'completed',idx);}
-  else {const other=1-idx;if(room.settings.mode==='timed'&&room.timers[other]<=0){room.active=idx;}else room.active=other;room.lastTick=0;}
+  else {const other=1-idx;const next=room.settings.mode==='timed'&&room.timers[other]<=0?idx:other;
+   // A completed gem triggers a synchronized, non-billable reveal for both players.
+   // The next player starts only AFTER this reveal; no clock is spent watching it.
+   if(m.type==='shot'&&justComplete.length){room.phase='reveal';room.pendingNext=next;room.revealEndsAt=Date.now()+3100;room.lastTick=0;}
+   else {room.active=next;room.lastTick=Date.now();}
+  }
  }
  else return error(ws,'Acción no reconocida.');
  broadcast(room);
@@ -130,17 +138,22 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
 wss.on('connection',ws=>{ws.on('message',raw=>{try{onMessage(ws,raw);}catch(e){console.error('Error de acción:',e);error(ws,'No se pudo completar la acción.');}});
  ws.on('close',()=>{const r=rooms.get(ws.room);if(r&&r.players[ws.player]?.ws===ws){r.players[ws.player].ws=null;r.lastTick=0;if(r.phase==='countdown'){r.phase='setup';r.countdownEndsAt=0;for(const p of r.players)if(p)p.ready=false;announce(r,'Se canceló la cuenta regresiva porque un jugador se desconectó.');}broadcast(r);}});
 });
+// No full-state broadcasts for every clock tick: only state-changing events are sent.
 setInterval(()=>{for(const r of rooms.values()){
  if(r.phase==='countdown'&&Date.now()>=r.countdownEndsAt){
-  if(r.players.every(connected)){
-   r.phase='playing';r.lastTick=Date.now();announce(r,`¡A excavar! Comienza ${r.players[r.active].name}.`);
-  }else {r.phase='setup';r.countdownEndsAt=0;for(const p of r.players)if(p)p.ready=false;}
+  if(r.players.every(connected)){r.phase='playing';r.lastTick=Date.now();announce(r,`¡A excavar! Comienza ${r.players[r.active].name}.`);}
+  else {r.phase='setup';r.countdownEndsAt=0;for(const p of r.players)if(p)p.ready=false;}
   broadcast(r);
- }else if(r.phase==='playing'&&r.settings.mode==='timed'){
-  const a=r.active,t=r.timers[a],prev=r.phase;syncClock(r);
-  if(prev!==r.phase||r.timers[a]!==t)broadcast(r);
+ } else if(r.phase==='reveal'&&Date.now()>=r.revealEndsAt){
+  r.phase='playing';r.active=r.pendingNext;r.pendingNext=null;r.revealEndsAt=0;r.lastTick=Date.now();
+  announce(r,`Turno de ${r.players[r.active].name}.`);broadcast(r);
+ } else if(r.phase==='playing'&&r.settings.mode==='timed'){
+  const oldPhase=r.phase,oldActive=r.active;syncClock(r);
+  if(oldPhase!==r.phase||oldActive!==r.active)broadcast(r);
  }
 }},250);
+// Occasional compact corrections keep local browser clocks consistent.
+setInterval(()=>{for(const r of rooms.values())if(r.phase==='playing'&&r.settings.mode==='timed')broadcastClock(r);},10000);
 setInterval(()=>{for(const [id,r] of rooms){if(Date.now()-r.updated>4*60*60*1000){for(const p of r.players)if(p?.ws)p.ws.close();rooms.delete(id);}}},60000);
 if(require.main===module)srv.listen(PORT,'0.0.0.0',()=>console.log(`GEMAPLANO en http://localhost:${PORT}`));
 module.exports={srv,rooms};

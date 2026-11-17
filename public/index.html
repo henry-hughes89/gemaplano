@@ -334,6 +334,40 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
 }
 @media(max-height:600px){.gemPreviewStage{height:38px}#setupView .setupHint{display:none}.hero h2{font-size:28px}.hero ul{display:none}}
 
+
+/* GEMAPLANO v9: board-first interface and stable state / clock separation */
+.boardTabs{display:flex;align-items:center;gap:5px;padding:3px;border:1px solid #526c54;border-radius:11px;background:#12221b;max-width:100%}
+.boardTabs button{font-size:12px;min-height:34px;padding:6px 11px;box-shadow:none;background:transparent;border:1px solid transparent;color:#c4d3bf;border-radius:8px;white-space:nowrap}
+.boardTabs button.active{background:linear-gradient(125deg,#e4c58b,#c7a063);color:#201c15;font-weight:900}
+.boardTabs button.mine-alert{animation:radarGlow .65s 3}
+#ownPlayBoard{width:100%;height:100%;display:block}
+.board-instruction{font-size:11px;line-height:1.3;color:#c9d4bd}
+#playView .boardPanel>.toprow{gap:7px}
+#playView .boardPanel>.toprow .turnPill{flex:none;white-space:nowrap}
+#actionPanelMineHint{display:none}
+#actionPanelMineHint.active{display:flex;align-items:center;gap:8px;border:1px solid #8acb9f;background:#244e3c;border-radius:10px;padding:10px;font-size:12px}
+#actionPanelMineHint button{min-height:34px;padding:5px 11px;background:#f0d9a6;color:#2b241a}
+#actionPanelMineHint.active~#actionHint{display:none}
+.infoButtons{grid-template-columns:repeat(2,minmax(0,1fr))}
+#actionPanelMineHint.active~.actionModes,#actionPanelMineHint.active~.coords,#actionPanelMineHint.active~#actionBtn{display:none}
+.buildTag{display:inline-flex;align-items:center;padding:4px 7px;background:#1b3528;color:#bde4c6;border:1px solid #4c725b;border-radius:8px;font:800 10px/1 ui-monospace,monospace}
+.excavate-stage{position:absolute;z-index:25;width:102px;height:110px;display:none;align-items:center;justify-content:center;pointer-events:none;transform:translate(-50%,-54%);filter:drop-shadow(0 10px 8px #08110cbd)}
+.excavate-stage.active{display:flex}
+.excavate-stage .target-ring{position:absolute;inset:21px;border:2px solid #ffdaa0;border-radius:50%;box-shadow:0 0 0 6px #ffcc8a24,0 0 23px #ffe59b85;animation:exLocate 1s ease-out both}
+.excavate-stage .rock-shell{position:absolute;width:54px;height:53px;background:linear-gradient(135deg,#a3977b,#5a5d53 53%,#333c37);clip-path:polygon(24% 4%,79% 4%,100% 42%,88% 91%,34% 100%,0 67%,0 28%);border:2px solid #cfbda0;animation:exRock 1.08s ease both}
+.excavate-stage .rock-shell:after{content:'';position:absolute;inset:4px;background:linear-gradient(28deg,transparent 46%,#f3e4bf 47%,transparent 52%),linear-gradient(102deg,transparent 44%,#e8d7b1 45%,transparent 49%);opacity:0;animation:exCracks 1.08s ease both}
+.excavate-stage .pickaxe{position:absolute;top:0;left:52px;font-size:38px;transform-origin:15% 75%;text-shadow:0 3px 4px #000;animation:exStrike .43s ease-in-out 2 .22s both}
+.excavate-stage .grit{position:absolute;inset:19px;opacity:0;background:radial-gradient(circle at 12% 35%,#f4e0aa 2px,transparent 4px),radial-gradient(circle at 74% 25%,#c1b29c 3px,transparent 5px),radial-gradient(circle at 35% 74%,#ab9a80 3px,transparent 5px),radial-gradient(circle at 94% 65%,#e5d4b5 3px,transparent 6px);animation:exDust 1.08s both}
+.excavate-stage .ex-caption{position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.15em;font-weight:1000;white-space:nowrap;color:#ffe6bb;text-shadow:0 2px 4px #000;background:#182b21c9;border:1px solid #817154;border-radius:12px;padding:4px 8px}
+@keyframes exLocate{0%{opacity:0;transform:scale(2)}25%{opacity:1;transform:scale(.7)}75%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes exStrike{0%{opacity:0;transform:translate(30px,-25px) rotate(-62deg)}24%{opacity:1}48%{transform:translate(-9px,20px) rotate(24deg)}65%{transform:translate(5px,-8px) rotate(-43deg)}82%{transform:translate(-8px,18px) rotate(23deg)}100%{opacity:0;transform:translate(8px,17px) rotate(26deg)}}
+@keyframes exCracks{0%,33%{opacity:0}43%,88%{opacity:.9}100%{opacity:0}}
+@keyframes exRock{0%{opacity:0;transform:scale(.8)}20%,70%{opacity:1;transform:scale(1)}82%{opacity:1;transform:scale(1.07)}100%{opacity:0;transform:scale(1.2) rotate(-7deg)}}
+@keyframes exDust{0%,39%{opacity:0;transform:scale(.3)}55%,85%{opacity:1}100%{opacity:0;transform:scale(1.75)}}
+.discovery .reveal-glow{animation-duration:2.05s}.discovery .reveal-ray{animation-duration:2.05s!important}.discovery .reveal-content{animation-duration:2.05s}.discovery .reveal-jewel{animation-duration:2.05s}.discovery .reveal-particles i{animation-duration:1.65s}
+@media(max-width:800px){.boardTabs button{font-size:10px;padding:3px 6px;min-height:27px}.buildTag{font-size:9px;padding:4px}.excavate-stage{transform:translate(-50%,-50%) scale(.85)}}
+@media(prefers-reduced-motion:reduce){.excavate-stage *{animation:none!important}.excavate-stage .rock-shell{display:none}.excavate-stage .pickaxe{display:none}.excavate-stage .target-ring{opacity:1}.excavate-stage .grit{display:none}}
+
 </style>
 </head>
 <body>
@@ -348,6 +382,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
     </div>
     <div class="statusline">
       <button id="homeNavBtn" class="ghost homeNav hidden" type="button">⌂ Inicio</button>
+      <span id="buildVersion" class="buildTag" title="Versión publicada">v9</span>
       <button id="soundToggle" class="soundToggle" type="button" aria-pressed="false" aria-label="Activar sonido">♫ Sonido: no</button>
       <span id="netStatus" class="pill offline">● Conectando…</span>
     </div>
@@ -440,12 +475,13 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
 
       <div id="playView" class="hidden">
         <section class="panel boardPanel">
-          <div class="toprow"><h2><span class="phase2tag">FASE 2</span> · Explora el yacimiento rival</h2><span id="turnPill" class="turnPill">Esperando…</span></div>
+          <div class="toprow"><div class="boardTabs" aria-label="Seleccionar tablero"><button id="tabRival" class="active" type="button">⛏ Yacimiento rival</button><button id="tabMine" type="button">◆ Mi mina</button></div><span id="turnPill" class="turnPill">Esperando…</span></div>
           <div class="boardWrap">
-            <div class="boardBox"><svg id="enemyBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero rival"></svg></div>
+            <div class="boardBox"><svg id="enemyBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero rival"></svg><svg id="ownPlayBoard" class="grid hidden" viewBox="0 0 460 460" aria-label="Mi mina: gemas propias e impactos recibidos"></svg></div>
+            <div id="excavateStage" class="excavate-stage" aria-hidden="true"><div class="target-ring"></div><div class="rock-shell"></div><div class="pickaxe">⛏</div><div class="grit"></div><div class="ex-caption">EXCAVANDO</div></div>
             <div class="boardOverlay"><div id="battleNotice" class="notice hidden"></div></div>
           </div>
-          <div class="legend"><span class="board-note">Introduce (x, y) para excavar. El plano registra tus hallazgos.</span><span id="coordPreview" class="muted mono">(0, 0)</span></div>
+          <div class="legend"><span id="boardHint" class="board-note">Introduce (x, y) para excavar. El plano registra tus hallazgos.</span><span id="coordPreview" class="muted mono">(0, 0)</span></div>
         </section>
 
         <section class="panel sidePanel">
@@ -455,6 +491,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
             <div class="scoreCard"><div><div class="muted small" id="opName">Rival</div><strong id="opScore">0 / 26</strong><div class="small" id="opExtra">0 gemas completas</div></div><div id="opClock" class="clock">∞</div></div>
           </div>
           <div class="compactCard actionPanel">
+            <div id="actionPanelMineHint"><span>Tu yacimiento: observa dónde excavó el rival.</span><button id="returnRivalBtn" type="button">Volver a excavar</button></div>
             <div class="actionModes"><button id="shotModeBtn" class="mode active" type="button">⛏ Excavar</button><button id="radarModeBtn" class="mode" type="button">◈ Radar 3×3</button></div>
             <div class="coords"><span>(</span><input id="coordX" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada x"><span>,</span><input id="coordY" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada y"><span>)</span></div>
             <button id="actionBtn" class="primary bigAction" type="button">⛏ Excavar</button>
@@ -464,7 +501,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
             <div class="toprow" style="margin:0 0 8px"><strong>Colección recuperada</strong><span id="completeCount" class="badge">0/7</span></div>
             <div id="completeList" class="completeList"></div>
           </div>
-          <div class="infoButtons"><button id="myBoardBtn" class="ghost" type="button">Mi mina</button><button id="historyBtn" class="ghost" type="button">Registro</button><button id="rulesBtn2" class="ghost" type="button">Reglas</button></div>
+          <div class="infoButtons"><button id="historyBtn" class="ghost" type="button">Registro</button><button id="rulesBtn2" class="ghost" type="button">Reglas</button></div>
         </section>
       </div>
     </section>
@@ -493,7 +530,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
  <div class="reveal-meta" id="revealMeta">MINERAL RECONSTRUIDO</div></div>
  <div id="revealParticles" class="reveal-particles" aria-hidden="true"></div>
 </div>
-<div id="digFx" class="dig-fx" aria-hidden="true"><div class="dig-tool">⛏</div><div class="dig-dust"></div><div class="dig-label" id="digLabel">EXCAVANDO</div></div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -514,6 +551,8 @@ const X=x=>PAD+(x-MIN)*CELL, Y=y=>PAD+(MAX-y)*CELL;
 const save=(k,v)=>{try{localStorage.setItem(k,v)}catch{}}; const load=k=>{try{return localStorage.getItem(k)}catch{return null}};
 let ws=null,state=null,prevState=null,sessionRoom='',myToken='',homeTab='create',createMode='timed',selectedGem='perla',setupRotation=0,setupHover=null,setupAnchor=null,modalKind='',netConnected=false,retryCount=0,battleNoticeTimer=0,radarPulse=null,lastShotPulse=null;
 let discoveryTimeout=null, digFxTimeout=null,showHome=false,setupPendingAction='',countdownEndsAtClient=0,countdownFrame=0;
+const CLIENT_VERSION='9.0.0';
+let boardMode='enemy',visualState=null,inFlight=null,pendingExcavation=null,clockSnapshot=null,excavationTimeout=0;
 // Sonidos originales sintetizados en el navegador (sin archivos externos).
 let soundEnabled=load('gemaplano_sound')==='1', audioContext=null;
 function updateSoundToggle(){const b=$('soundToggle');b.textContent=soundEnabled?'♫ Sonido: sí':'♫ Sonido: no';b.classList.toggle('on',soundEnabled);b.setAttribute('aria-pressed',String(soundEnabled));b.setAttribute('aria-label',soundEnabled?'Desactivar sonido':'Activar sonido');}
@@ -532,6 +571,7 @@ function playCue(name){if(!audioReady())return;
  else if(name==='rival-hit'){tone(310,0,.19,.038,'triangle',.74);tone(226,.16,.23,.028,'sine');}
  else if(name==='rival-miss'){tone(340,0,.11,.022,'sine');}
  else if(name==='rival-complete'){tone(325,0,.25,.05,'triangle');tone(256,.28,.40,.047,'triangle');}
+ else if(name==='dig'){scratch(0,.019,.1);tone(140,.10,.10,.013,'triangle',.8);scratch(.3,.027,.11);scratch(.54,.031,.12);}
  else if(name==='start'){tone(523,0,.17,.038);tone(784,.18,.28,.05);}
  else if(name==='end'){tone(440,0,.23,.028,'sine');}
 }
@@ -547,41 +587,108 @@ function send(obj){if(ws&&ws.readyState===1)ws.send(JSON.stringify(obj));else to
 function setNetStatus(ok){netConnected=ok;$('netStatus').textContent=ok?'● Conectado':'● Sin conexión';$('netStatus').className='pill '+(ok?'online':'offline');}
 function connect(){if(ws&&(ws.readyState===0||ws.readyState===1))return;const proto=location.protocol==='https:'?'wss://':'ws://';ws=new WebSocket(proto+location.host);setNetStatus(false);
  ws.onopen=()=>{setNetStatus(true);retryCount=0;if(sessionRoom&&myToken)send({type:'join',room:sessionRoom,token:myToken});};
- ws.onclose=()=>{setNetStatus(false);if(sessionRoom){clearTimeout(connect._t);connect._t=setTimeout(connect,Math.min(10000,1200+retryCount*800));retryCount++;}};
- ws.onmessage=e=>{let msg;try{msg=JSON.parse(e.data)}catch{return};if(msg.type==='error'){toast(msg.message);return;}if(msg.type==='session'){sessionRoom=msg.room;myToken=msg.token;save('cristalia_'+sessionRoom,myToken);history.replaceState(null,'','?sala='+sessionRoom);return;}if(msg.type==='left'||msg.type==='room_closed'){if(msg.type==='room_closed')toast('La sala fue cerrada por su creador.');leaveClient();return;}if(msg.type==='state'){ingestState(msg);}};
+ ws.onclose=()=>{setNetStatus(false);inFlight=null;hideExcavation();if(sessionRoom){clearTimeout(connect._t);connect._t=setTimeout(connect,Math.min(10000,1200+retryCount*800));retryCount++;}};
+ ws.onmessage=e=>{let msg;try{msg=JSON.parse(e.data)}catch{return};if(msg.type==='error'){inFlight=null;hideExcavation();toast(msg.message);if(state?.phase==='playing')renderPlay();return;}if(msg.type==='clock'){receiveClock(msg);return;}if(msg.type==='session'){sessionRoom=msg.room;myToken=msg.token;save('cristalia_'+sessionRoom,myToken);history.replaceState(null,'','?sala='+sessionRoom);return;}if(msg.type==='left'||msg.type==='room_closed'){if(msg.type==='room_closed')toast('La sala fue cerrada por su creador.');leaveClient();return;}if(msg.type==='state'){ingestState(msg);}};
 }
+// The clock is locally interpolated; server messages only correct it every 10 s.
+function receiveClock(msg){if(!state||state.settings.mode!=='timed')return;
+ if(msg.phase!==state.phase||msg.active!==state.active)return; // stale correction after a turn change
+ clockSnapshot={timers:msg.timers.slice(),active:msg.active,phase:msg.phase,waiting:msg.waiting,at:performance.now()};updateClockLabels();}
+function updateClockLabels(){if(!state||state.phase==='setup'||state.phase==='countdown'||state.settings.mode!=='timed')return;
+ const snap=clockSnapshot;if(!snap)return;const elapsed=Math.max(0,performance.now()-snap.at);
+ const values=snap.timers.map((t,i)=>Math.max(0,t-(snap.phase==='playing'&&!snap.waiting&&i===snap.active?elapsed:0)));
+ for(const [id,i] of [['meClock',state.me],['opClock',1-state.me]]){const el=$(id);if(!el)continue;const text=fmtClock(values[i]);if(el.textContent!==text)el.textContent=text;el.className='clock '+(values[i]===0?'over':snap.active===i&&snap.phase==='playing'?'live':'');}
+}
+setInterval(updateClockLabels,200);
 function ingestState(next){
  const old=state;prevState=state;state=next;
+ clockSnapshot={timers:next.timers.slice(),active:next.active,phase:next.phase,waiting:next.waiting,at:performance.now()};
+ if(next.version&&next.version!==CLIENT_VERSION)toast('La versión del servidor no coincide: actualiza la página.');
  if(setupPendingAction && next.phase==='setup'){
    const action=setupPendingAction;setupPendingAction='';setupAnchor=null;setupHover=null;
    if(action==='auto'||action==='reset'){selectedGem='perla';setupRotation=0;}
    if(action==='place'){const missing=GEMS.find(g=>!next.placements[g.id]);if(missing){selectedGem=missing.id;setupRotation=0;}}
  }
  if(next.phase==='countdown'&&old?.phase!=='countdown')countdownEndsAtClient=performance.now()+(next.countdownRemaining||3300);
- detectEvents(old,next);render();
-}
-function detectEvents(old,next){if(!old||old.phase!==next.phase){if(next.phase==='playing'){showNotice(`Comienza la partida. ${next.players[next.active]?.name||'Jugador'} juega primero.`, 'hit', 2400);playCue('start');}}if(!old)return;
- let soundCue='';
- // my new shot
- const oldHistLen=old.history?.length||0,newHistLen=next.history?.length||0;
- if(newHistLen>oldHistLen){const last=next.history[newHistLen-1];lastShotPulse={x:Number(last.pos.split(',')[0]),y:Number(last.pos.split(',')[1]),kind:last.hit?'hit':'miss',until:Date.now()+1400};
-   startDigFx(last.hit?'hit':'miss',Number(last.pos.split(',')[0]),Number(last.pos.split(',')[1]));
-   if(last.hit){showNotice(`¡Mineral en (${last.pos})! +1 nodo`, 'hit', 1900);soundCue='hit';}else{showNotice(`Roca vacía en (${last.pos}).`, '', 1450);soundCue='miss';}
+ if(old&&old.phase!=='setup'){
+  const myNewShot=(next.history?.length||0)>(old.history?.length||0);
+  const theirNewShot=(next.ownHits?.length||0)>(old.ownHits?.length||0);
+  // A rival excavation must never block the player whose clock just started.
+  // It is reported immediately and non-blockingly; only the author of the shot
+  // sees the suspense animation before the result is unveiled.
+  if(theirNewShot&&!myNewShot){
+   const pos=next.ownHits[next.ownHits.length-1],hit=!!myMineMap(next)[pos];
+   const [x,y]=pos.split(',').map(Number);lastShotPulse={x,y,kind:hit?'rival-hit':'rival-miss',onOwn:true,until:Date.now()+1200};
+   const gained=ownCompleted(next).filter(id=>!ownCompleted(old).includes(id));
+   flashMineIndicator();visualState=null;inFlight=null;render();
+   if(gained.length){showNotice('Tu rival reconstruyó una de tus gemas.','alert',1500);playCue('rival-complete');queueDiscovery(gained[0],true);}
+   else{showNotice(hit?`Tu rival encontró un fragmento en (${pos}).`:`Tu rival excavó roca vacía en (${pos}).`,hit?'alert':'',1400);playCue(hit?'rival-hit':'rival-miss');}
+   return;
+  }
+  if(myNewShot){
+   visualState=old;render();
+   const point=myNewShot?next.history[next.history.length-1].pos:next.ownHits[next.ownHits.length-1];
+   const [x,y]=point.split(',').map(Number);const kind=myNewShot?'enemy':'mine';
+   const previous=inFlight&&myNewShot&&inFlight.kind==='shot'&&inFlight.x===x&&inFlight.y===y?performance.now()-inFlight.start:0;
+   if(myNewShot&&!inFlight)startExcavation(x,y,'enemy');
+   if(theirNewShot&&boardMode==='mine')startExcavation(x,y,'mine');
+   const delay=window.matchMedia('(prefers-reduced-motion: reduce)').matches?120:Math.max(0,1050-previous);
+   clearTimeout(excavationTimeout);
+   pendingExcavation={old,kind,x,y};
+   excavationTimeout=setTimeout(()=>finishExcavation(),delay);
+   return;
+  }
  }
- const oldCompleted=new Set(old.completed||[]);const gained=(next.completed||[]).filter(id=>!oldCompleted.has(id));if(gained.length){showNotice('¡Gema reconstruida!', 'win', 3200); queueDiscovery(gained[0],false);soundCue='complete';} 
- // rival hits on my board
- const oldOwnHit=(old.ownHits||[]).length,newOwnHit=(next.ownHits||[]).length;
- if(newOwnHit>oldOwnHit){const pos=next.ownHits[newOwnHit-1];const [x,y]=pos.split(',').map(Number),hit=!!myMineMap(next)[pos];lastShotPulse={x,y,kind:hit?'rival-hit':'rival-miss',until:Date.now()+1500,onOwn:true};showNotice(hit?`¡Tu rival halló un mineral en (${pos})!`:`Tu rival excavó roca vacía en (${pos}).`,hit?'alert':'',1800);flashMineIndicator();soundCue=hit?'rival-hit':'rival-miss';} 
- const oldRadar=(old.radars||[]).length,newRadar=(next.radars||[]).length;
- if(newRadar>oldRadar){const r=next.radars[newRadar-1];radarPulse={x:r.x,y:r.y,n:r.n,until:Date.now()+2800};showNotice(`Radar geológico · ${r.n} ${r.n===1?'señal':'señales'} en 9 nodos`, 'win', 3000);soundCue='radar';setTimeout(()=>{if(state&&state.phase!=='setup')drawEnemyBoard();},2850);} 
- const oldOwnComp=ownCompleted(old), newOwnComp=ownCompleted(next);const oldOwnSet=new Set(oldOwnComp);const lostMsg=newOwnComp.filter(id=>!oldOwnSet.has(id));if(lostMsg.length){showNotice('El rival completó un mineral de tu mina.', 'alert',2400); queueDiscovery(lostMsg[0],true);soundCue='rival-complete';}
- if(old.phase!=='ended'&&next.phase==='ended'){if(next.winner===-1)showNotice('La partida terminó en empate.', 'win', 2800); else if(next.winner===next.me)showNotice('¡Ganaste la partida!', 'win', 2800); else showNotice('La partida terminó. Ganó tu rival.', 'alert', 2800);if(!gained.length&&!lostMsg.length)soundCue='end';}
- if(soundCue)playCue(soundCue); }
-function startDigFx(kind='hit',x=0,y=0){
- const el=$('digFx'),rect=$('enemyBoard').getBoundingClientRect();el.style.left=(rect.left+X(x)/460*rect.width)+'px';el.style.top=(rect.top+Y(y)/460*rect.height-65)+'px';el.style.right='auto';el.className='dig-fx active '+kind;$('digLabel').textContent=kind==='hit'?'¡MINERAL!':'ROCA VACÍA';
- clearTimeout(digFxTimeout);digFxTimeout=setTimeout(()=>el.classList.remove('active'),1000);
+ if(!pendingExcavation){visualState=null;inFlight=null;}
+ detectNonShotEvents(old,next);render();
 }
-function flashMineIndicator(){const b=$('myBoardBtn');if(!b)return;b.classList.remove('mine-alert');void b.offsetWidth;b.classList.add('mine-alert');setTimeout(()=>b.classList.remove('mine-alert'),1900);}
+function detectNonShotEvents(old,next){
+ if(old&&old.phase==='countdown'&&next.phase==='playing'){showNotice(`¡A excavar! Comienza ${next.players[next.active]?.name||'Jugador'}.`,'hit',1900);playCue('start');}
+ if(!old)return;
+ if((next.radars?.length||0)>(old.radars?.length||0)){
+  const r=next.radars[next.radars.length-1];radarPulse={x:r.x,y:r.y,n:r.n,until:Date.now()+2900};
+  showNotice(`Radar geológico · ${r.n} ${r.n===1?'señal':'señales'} en 9 nodos`,'win',2600);playCue('radar');
+  inFlight=null;setTimeout(()=>{if(state&&boardMode==='enemy')drawEnemyBoard();},2950);
+ }
+ if(old.phase!=='ended'&&next.phase==='ended'){
+  const text=next.winner===-1?'La partida terminó en empate.':next.winner===next.me?'¡Ganaste la partida!':'Ganó tu rival.';
+  showNotice(text,next.winner===next.me?'win':'alert',2700);playCue('end');
+ }
+}
+function startExcavation(x,y,where='enemy'){
+ const el=$('excavateStage'),svg=$(where==='mine'?'ownPlayBoard':'enemyBoard');
+ if(!el||!svg||!svg.getBoundingClientRect().width)return;
+ const outer=el.closest('.boardWrap').getBoundingClientRect(),rect=svg.getBoundingClientRect();
+ el.style.left=(rect.left-outer.left+(X(x)/460)*rect.width)+'px';
+ el.style.top=(rect.top-outer.top+(Y(y)/460)*rect.height)+'px';
+ el.classList.remove('active');void el.offsetWidth;el.classList.add('active');
+ el.querySelector('.ex-caption').textContent='EXCAVANDO';
+ playCue('dig');
+}
+function hideExcavation(){$('excavateStage').classList.remove('active');}
+function finishExcavation(){const pending=pendingExcavation;if(!pending)return;
+ pendingExcavation=null;visualState=null;inFlight=null;hideExcavation();
+ const next=state,old=pending.old;
+ const gained=(next.completed||[]).filter(id=>!(old.completed||[]).includes(id));
+ const ownGained=ownCompleted(next).filter(id=>!ownCompleted(old).includes(id));
+ const pos=key(pending.x,pending.y);
+ if(pending.kind==='enemy'){
+   const last=next.history[next.history.length-1],hit=!!last?.hit;
+   lastShotPulse={x:pending.x,y:pending.y,kind:hit?'hit':'miss',until:Date.now()+1100};
+   if(gained.length){showNotice('¡Gema completamente reconstruida!','win',1800);playCue('complete');queueDiscovery(gained[0],false);}
+   else if(hit){showNotice(`¡Fragmento gris en (${pos})! +1 nodo`,'hit',1800);playCue('hit');}
+   else {showNotice(`Roca vacía en (${pos}).`,'',1400);playCue('miss');}
+ }else{
+   const last=next.ownImpacts?.[next.ownImpacts.length-1];const hit=last?!!last.hit:!!myMineMap(next)[pos];
+   lastShotPulse={x:pending.x,y:pending.y,kind:hit?'rival-hit':'rival-miss',onOwn:true,until:Date.now()+1300};
+   flashMineIndicator();
+   if(ownGained.length){showNotice('El rival reconstruyó una de tus gemas.','alert',1700);playCue('rival-complete');queueDiscovery(ownGained[0],true);}
+   else{showNotice(hit?`El rival descubrió un fragmento en (${pos}).`:`El rival excavó roca vacía en (${pos}).`,hit?'alert':'',1700);playCue(hit?'rival-hit':'rival-miss');}
+ }
+ render();setTimeout(()=>{if(state&&state.phase!=='setup')renderBoardOnly();},1350);
+ if(old.phase!=='ended'&&next.phase==='ended')setTimeout(()=>{if(state?.phase==='ended')showNotice(next.winner===next.me?'¡Ganaste la partida!':next.winner===-1?'Empate':'Ganó tu rival.',next.winner===next.me?'win':'alert',2300);},2100);
+}
+function flashMineIndicator(){const b=$('tabMine');if(!b)return;b.classList.remove('mine-alert');void b.offsetWidth;b.classList.add('mine-alert');setTimeout(()=>b.classList.remove('mine-alert'),1900);}
 function gem3DMarkup(gem){
  // The seven crystal silhouettes preserve the actual node geometry. Each facet is shaded with its gem color.
  const pts=gem.cells;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const mx=Math.min(...xs),my=Math.min(...ys),maxX=Math.max(...xs)-mx,maxY=Math.max(...ys)-my;
@@ -599,7 +706,7 @@ function queueDiscovery(id,rival=false){const gem=gemById(id);if(!gem)return;con
  $('revealJewel').innerHTML=gem3DMarkup(gem);
  el.style.setProperty('--reveal-color',gem.color);el.classList.toggle('rival',rival);el.classList.remove('active');void el.offsetWidth;
  let pts='';for(let i=0;i<24;i++){const a=(Math.PI*2*i)/24;const len=100+(i%4)*31;const dx=Math.cos(a)*len,dy=Math.sin(a)*len;pts+=`<i style="--dx:${dx.toFixed(1)}px;--dy:${dy.toFixed(1)}px;--delay:${(i%6)*.052}s;--sz:${(i%3+3)}px"></i>`;}$('revealParticles').innerHTML=pts;
- el.classList.add('active');el.setAttribute('aria-hidden','false');clearTimeout(discoveryTimeout);discoveryTimeout=setTimeout(()=>{el.classList.remove('active');el.setAttribute('aria-hidden','true');},3700);
+ el.classList.add('active');el.setAttribute('aria-hidden','false');clearTimeout(discoveryTimeout);discoveryTimeout=setTimeout(()=>{el.classList.remove('active');el.setAttribute('aria-hidden','true');},2000);
 }
 function showNotice(text,kind='',duration=2000){const el=$('battleNotice');el.textContent=text;el.className='notice '+kind;el.classList.remove('hidden');clearTimeout(battleNoticeTimer);battleNoticeTimer=setTimeout(()=>el.classList.add('hidden'),duration);}
 function ownCompleted(snapshot){if(!snapshot)return [];const hits=new Set(snapshot.ownHits||[]);return GEMS.filter(g=>{const p=snapshot.placements[g.id];return p&&gemPoints(g.id,p.x,p.y,p.r).every(([x,y])=>hits.has(key(x,y)));}).map(g=>g.id)}
@@ -631,7 +738,7 @@ function renderGemButtons(){ $('gemList').innerHTML=GEMS.map(g=>{const done=!!st
 function boardCellFromEvent(svg,ev){const rect=svg.getBoundingClientRect();const px=(ev.clientX-rect.left)/rect.width*460, py=(ev.clientY-rect.top)/rect.height*460;let x=Math.round((px-PAD)/CELL)+MIN, y=MAX-Math.round((py-PAD)/CELL); if(x<MIN||x>MAX||y<MIN||y>MAX)return null; return {x,y};}
 function jewelCell(cx,cy,color,fragment=false,scale=1){
  const r=13.9*scale;const c=fragment?'#b9c5c4':color;const opacity=1;
- return `<g data-mineral="${fragment?'fragment':'gema'}" class="${fragment?'mineral-fragment':'full-gem'}" transform="translate(${cx},${cy})" opacity="${opacity}" filter="url(#jewelDrop)">
+ return `<g data-mineral="${fragment?'fragment':'gema'}" class="${fragment?'mineral-fragment':'full-gem'}" transform="translate(${cx},${cy})" opacity="${opacity}" >
  <polygon points="0,-${r} ${r*.8},-${r*.34} ${r*.72},${r*.58} 0,${r} -${r*.72},${r*.58} -${r*.8},-${r*.34}" fill="${c}" stroke="${fragment?'#f0f8ee':'#f5f6e9'}" stroke-width="${fragment?1.9:1.1}"/>
  <path d="M0,-${r} L${r*.21},-${r*.10} L0,${r*.62} L-${r*.21},-${r*.10}Z" fill="#ffffff" opacity="${fragment?.28:.67}"/>
  <path d="M-${r*.8},-${r*.34}L-${r*.21},-${r*.1}L0,${r*.62}L-${r*.72},${r*.58}Z" fill="#000" opacity=".32"/>
@@ -640,16 +747,16 @@ function jewelCell(cx,cy,color,fragment=false,scale=1){
  <path d="M-${r*.21},-${r*.1}L${r*.21},-${r*.1}L0,${r*.62}Z" fill="#ffffff" opacity=".12"/>
  </g>`;
 }
-function baseGrid(){
+function baseGrid(prefix="mine"){
  let out=`<defs>
-   <radialGradient id="mineLight" cx="30%" cy="12%" r="85%"><stop offset="0" stop-color="#333e39"/><stop offset=".55" stop-color="#202b28"/><stop offset="1" stop-color="#101b19"/></radialGradient>
-   <filter id="jewelDrop"><feDropShadow dx="0.5" dy="2" stdDeviation="1.7" flood-color="#000" flood-opacity=".7"/></filter>
-   <filter id="seamGlow"><feGaussianBlur stdDeviation="4"/></filter>
-   <linearGradient id="seamA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d19d5d" stop-opacity=".38"/><stop offset="1" stop-color="#6f875c" stop-opacity=".04"/></linearGradient>
+   <radialGradient id="${prefix}_mineLight" cx="30%" cy="12%" r="85%"><stop offset="0" stop-color="#333e39"/><stop offset=".55" stop-color="#202b28"/><stop offset="1" stop-color="#101b19"/></radialGradient>
+   <filter id="${prefix}_jewelDrop"><feDropShadow dx="0.5" dy="2" stdDeviation="1.7" flood-color="#000" flood-opacity=".7"/></filter>
+   <filter id="${prefix}_seamGlow"><feGaussianBlur stdDeviation="4"/></filter>
+   <linearGradient id="${prefix}_seamA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d19d5d" stop-opacity=".38"/><stop offset="1" stop-color="#6f875c" stop-opacity=".04"/></linearGradient>
   </defs>
-  <rect x="9" y="9" width="442" height="442" rx="23" fill="url(#mineLight)" stroke="#8c7960" stroke-opacity=".35" stroke-width="1.5"/>
+  <rect x="9" y="9" width="442" height="442" rx="23" fill="url(#${prefix}_mineLight)" stroke="#8c7960" stroke-opacity=".35" stroke-width="1.5"/>
   <path d="M15 71L78 46 132 68 202 26 289 52 355 28 443 79M14 388L85 416 153 390 222 438 300 399 380 421 444 373" fill="none" stroke="#a58f70" opacity=".18" stroke-width="10" stroke-linejoin="round"/>
-  <path d="M22 258L69 237 105 267 162 240 205 258M267 85L313 69 347 100 396 84 439 106M95 420L128 389 167 397M333 292L356 267 420 280" stroke="url(#seamA)" stroke-width="3" fill="none" opacity=".52"/>
+  <path d="M22 258L69 237 105 267 162 240 205 258M267 85L313 69 347 100 396 84 439 106M95 420L128 389 167 397M333 292L356 267 420 280" stroke="url(#${prefix}_seamA)" stroke-width="3" fill="none" opacity=".52"/>
   <path d="M33 191l26 -16 16 9 22 -11M310 386l22 -22 23 6 19 -10" stroke="#6d7565" stroke-opacity=".28" fill="none" stroke-width="2"/>`;
  for(let i=MIN;i<=MAX;i++){
   out+=`<line x1="${X(i)}" y1="${Y(MIN)}" x2="${X(i)}" y2="${Y(MAX)}" stroke="${i===0?'#d8c398':'#789087'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
@@ -659,7 +766,7 @@ function baseGrid(){
  for(let x=MIN;x<=MAX;x++)for(let y=MIN;y<=MAX;y++)out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="2.6" fill="#d6c6a3" opacity=".81"/>`;
  return out;
 }
-function drawSetupBoard(){const svg=$('setupBoard');if(!svg)return;let out=baseGrid();
+function drawSetupBoard(){const svg=$('setupBoard');if(!svg)return;let out=baseGrid('setup');
  const preview=currentPreview(),isReady=!!state?.players?.[state.me]?.ready;
  for(const g of GEMS){const pl=state?.placements?.[g.id];if(!pl)continue;
   // Cuando se mueve una gema, sustituimos su imagen por la vista previa: nunca duplicarla.
@@ -689,9 +796,9 @@ function positionBoardBury(){const button=$('boardBuryBtn');if(!button||!state||
  const err=localValid(state.placements,p.id,p.x,p.y,p.r);button.disabled=!!err;button.title=err||'Confirmar enterrado';button.textContent=err?'Ubicación inválida':'⛏ Enterrar';button.classList.remove('hidden');
 }
 
-function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=baseGrid();
+function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=baseGrid('enemy');
  // Persistent, subtle radar footprints: retain the nine-node region for later deductions.
- for(const r of state?.radars||[]){
+ for(const r of (visualState||state)?.radars||[]){
   // Mientras está activa la animación, se oculta la huella persistente de ese radar.
   // Esto evita dos etiquetas numéricas superpuestas en la misma zona 3×3.
   if(radarPulse && Date.now()<radarPulse.until && r.x===radarPulse.x && r.y===radarPulse.y)continue;
@@ -699,9 +806,9 @@ function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=ba
   out+=`<rect x="${X(r.x)-9}" y="${Y(r.y+1)-24}" width="18" height="16" rx="4" fill="#2f5745" stroke="#5cb98a" stroke-width=".8"/><text x="${X(r.x)}" y="${Y(r.y+1)-12}" font-size="10" text-anchor="middle" fill="#d6ffdd" font-weight="900">${r.n}</text>`;
  }
  // history misses and hits
- for(const h of state?.history||[]){const [x,y]=h.pos.split(',').map(Number); if(!h.hit) out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`; }
+ for(const h of (visualState||state)?.history||[]){const [x,y]=h.pos.split(',').map(Number); if(!h.hit) out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`; }
  // Every confirmed hit gets a visible fragment; history is a safe fallback if a state lacks its visual map.
- const found={...(state?.enemyRevealed||{})};for(const h of state?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
+ const display=visualState||state;const found={...(display?.enemyRevealed||{})};for(const h of display?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
  for(const [pos,id] of Object.entries(found)){const [x,y]=pos.split(',').map(Number); const fragment=id==='fragment';
   out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="17.6" fill="${fragment?'#c1ead3':'#f9db9c'}" fill-opacity="${fragment?.15:.12}"/>`;
   out+=jewelCell(X(x),Y(y),fragment?'#b9c5c4':gemById(id)?.color||'#fff',fragment,1.12);
@@ -717,9 +824,9 @@ function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=ba
  svg.innerHTML=out; }
 function myMineMap(snapshot=state){const m={...(snapshot?.ownMap||{})};for(const g of GEMS){const p=snapshot?.placements?.[g.id];if(!p)continue;for(const [x,y] of gemPoints(g.id,p.x,p.y,p.r))m[key(x,y)]=g.id;}return m;}
 function myMineImpacts(snapshot=state){const m=myMineMap(snapshot);return (snapshot?.ownImpacts||snapshot?.ownHits?.map(pos=>({pos,hit:!!m[pos]}))||[]).map(h=>({pos:h.pos,hit:!!h.hit}));}
-function drawModalBoard(kind){const svg=$('modalBoard');let out=baseGrid();
+function drawModalBoard(kind,targetId='modalBoard'){const svg=$(targetId);let out=baseGrid(targetId);
  if(kind==='myBoard'){
-  const placements=myMineMap(),impacts=myMineImpacts();
+  const placements=myMineMap(),impacts=myMineImpacts(visualState||state);
   for(const [pos,id] of Object.entries(placements)){const [x,y]=pos.split(',').map(Number);out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1.08);}
   for(const h of impacts){const [x,y]=h.pos.split(',').map(Number),cx=X(x),cy=Y(y);
    if(h.hit){out+=`<g data-own-impact="hit"><circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="#ffc78c" stroke-width="2.8"/><path d="M${cx-4} ${cy-12}l7 9 -4 6 6 9" fill="none" stroke="#50221e" stroke-width="2.7" stroke-linejoin="round"/><path d="M${cx-4} ${cy-12}l7 9 -4 6 6 9" fill="none" stroke="#ffe1b1" stroke-width="1.4" stroke-linejoin="round"/></g>`;}
@@ -728,7 +835,7 @@ function drawModalBoard(kind){const svg=$('modalBoard');let out=baseGrid();
   if(lastShotPulse?.onOwn&&Date.now()<lastShotPulse.until){out+=`<circle class="pulse own-hit-ring" cx="${X(lastShotPulse.x)}" cy="${Y(lastShotPulse.y)}" r="24" fill="none" stroke="#ffe0b8" stroke-width="3"/>`;}
  }
  else if(kind==='history'){
-  const found={...(state?.enemyRevealed||{})};for(const h of state?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
+  const display=visualState||state;const found={...(display?.enemyRevealed||{})};for(const h of display?.history||[])if(h.hit&&!found[h.pos])found[h.pos]='fragment';
   for(const h of state.history||[]){const [x,y]=h.pos.split(',').map(Number);if(h.hit){const id=found[h.pos];out+=jewelCell(X(x),Y(y),id==='fragment'?'#b9c5c4':gemById(id)?.color||'#fff',id==='fragment',1.1);}else out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`;}
  }
  svg.innerHTML=out;
@@ -739,16 +846,37 @@ function openModal(kind){modalKind=kind; $('modalWrap').classList.add('open'); $
  if(kind==='rules'){ $('modalTitle').textContent='Reglas rápidas'; $('modalSub').textContent='Resumen compacto de la partida.'; $('modalBoardTitle').textContent='Plano'; $('modalSideTitle').textContent='Cómo se juega'; $('modalBadge').textContent='Ayuda'; $('modalSide').innerHTML=`<div class="compactCard"><ul class="logList"><li>Busca nodos del rival escribiendo pares ordenados.</li><li>El radar 3×3 aparece en los turnos 5, 10, 15…</li><li>Las gemas se muestran grises hasta completarlas.</li><li>Gana quien descubra todas las gemas rivales o tenga más puntos cuando acaben ambos relojes.</li></ul></div>`; }
  drawModalBoard(kind); }
 function closeModal(){modalKind=''; $('modalWrap').classList.remove('open'); $('modalWrap').setAttribute('aria-hidden','true');}
-function renderPlay(){const me=state.players[state.me], op=state.players[1-state.me]; const myTurn=state.phase==='playing'&&state.active===state.me&&!state.waiting; const canRadar=myTurn&&state.turn%5===0; const end=state.phase==='ended';
- $('meName').textContent=me.name+' (tú)'; $('opName').textContent=op?op.name:'Rival'; $('meScore').textContent=`${me.score.points} / ${TOTAL}`; $('opScore').textContent=`${op?.score.points||0} / ${TOTAL}`; $('meExtra').textContent=`${me.score.complete}/7 gemas completas`; $('opExtra').textContent=`${op?.score.complete||0}/7 gemas completas`; $('meClock').textContent=fmtClock(state.timers[state.me]); $('opClock').textContent=fmtClock(state.timers[1-state.me]); $('meClock').className='clock '+(state.settings.mode==='timed'?(state.timers[state.me]===0?'over':'live'):''); $('opClock').className='clock '+(state.settings.mode==='timed'?(state.timers[1-state.me]===0?'over':'live'):'');
- let turnMsg=end?(state.winner===-1?'Empate':state.winner===state.me?'Ganaste':'Turno de tu rival'):(state.waiting?'Conexión pausada':myTurn?'Tu turno':'Turno de '+(op?.name||'tu rival'));
- $('turnPill').textContent=turnMsg; $('turnPill').className='turnPill '+(state.waiting?'wait':end&&state.winner!==state.me?'alert':''); $('turnCount').textContent=`Turno ${state.turn}`;
-  window._mode=window._mode||'shot'; if(window._mode==='radar'&&!canRadar)window._mode='shot'; $('shotModeBtn').classList.toggle('active',window._mode==='shot'); $('radarModeBtn').classList.toggle('active',window._mode==='radar'); $('radarModeBtn').classList.toggle('radar-ready',canRadar);
- $('actionBtn').disabled=!myTurn||end; $('radarModeBtn').disabled=!canRadar; $('shotModeBtn').disabled=!myTurn||end; $('coordPreview').textContent=`(${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
+function setBoardMode(mode){if(pendingExcavation||inFlight){toast('Termina la excavación antes de cambiar de tablero.');return;}
+ boardMode=mode;renderPlay();}
+function renderBoardOnly(){if(boardMode==='mine'){drawModalBoard('myBoard','ownPlayBoard');}else{drawEnemyBoard();}}
+function renderPlay(){if(!state)return;const shown=visualState||state,me=shown.players[shown.me],op=shown.players[1-shown.me];
+ const myTurn=state.phase==='playing'&&state.active===state.me&&!state.waiting;
+ const canRadar=myTurn&&state.turn%5===0;const end=state.phase==='ended';
+ $('tabRival').classList.toggle('active',boardMode==='enemy');$('tabMine').classList.toggle('active',boardMode==='mine');
+ $('enemyBoard').classList.toggle('hidden',boardMode==='mine');$('ownPlayBoard').classList.toggle('hidden',boardMode!=='mine');
+ $('boardHint').textContent=boardMode==='mine'?'Tus 26 nodos a color. Grieta dorada: acierto rival. X rosada: roca vacía.':'Introduce (x, y) para excavar. El tablero muestra tus hallazgos.';
+ $('actionPanelMineHint').classList.toggle('active',boardMode==='mine');
+ $('meName').textContent=me.name+' (tú)';$('opName').textContent=op?.name||'Rival';
+ $('meScore').textContent=`${me.score.points} / ${TOTAL}`;$('opScore').textContent=`${op?.score.points||0} / ${TOTAL}`;
+ $('meExtra').textContent=`${me.score.complete}/7 gemas completas`;$('opExtra').textContent=`${op?.score.complete||0}/7 gemas completas`;
+ if(state.settings.mode==='free'){$('meClock').textContent='∞';$('opClock').textContent='∞';}else updateClockLabels();
+ let turnMsg=end?(state.winner===-1?'Empate':state.winner===state.me?'Ganaste':'Ganó tu rival'):(state.phase==='reveal'?'Reconstruyendo gema…':state.waiting?'Conexión pausada':myTurn?'Tu turno':'Turno de '+(op?.name||'tu rival'));
+ if(pendingExcavation)turnMsg='Excavando…';
+ $('turnPill').textContent=turnMsg;$('turnPill').className='turnPill '+(state.waiting?'wait':end&&state.winner!==state.me?'alert':'');
+ $('turnCount').textContent=`Turno ${state.turn}`;
+ window._mode=window._mode||'shot';if(window._mode==='radar'&&!canRadar)window._mode='shot';
+ $('shotModeBtn').classList.toggle('active',window._mode==='shot');$('radarModeBtn').classList.toggle('active',window._mode==='radar');$('radarModeBtn').classList.toggle('radar-ready',canRadar);
+ $('actionBtn').disabled=!myTurn||end||boardMode==='mine'||!!inFlight||!!pendingExcavation;
+ $('radarModeBtn').disabled=!canRadar||boardMode==='mine'||!!inFlight||!!pendingExcavation;
+ $('shotModeBtn').disabled=!myTurn||end||boardMode==='mine'||!!inFlight||!!pendingExcavation;
+ $('coordPreview').textContent=`(${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
  $('actionBtn').textContent=(window._mode==='radar'?'◈ Activar radar':'⛏ Excavar')+` (${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
- $('actionHint').textContent=end?'La partida terminó. Puedes revisar tableros o crear otra sala.':state.waiting?'Esperando la reconexión del rival.':window._mode==='radar'?(canRadar?'El radar resaltará esa zona 3×3 y contará señales.':'El radar vuelve a estar disponible en un turno múltiplo de 5.'):(state.history?.length?(()=>{const last=state.history[state.history.length-1];return last.hit?`◆ Acierto en (${last.pos}): fragmento gris · +1 nodo`:`✕ Roca vacía en (${last.pos})`;})():'Escribe el punto donde quieres excavar. Los aciertos aparecen como gemas grises.');
- $('completeCount').textContent=`${state.completed.length}/7`; $('completeList').innerHTML=GEMS.map(g=>`<div class="completeItem ${state.completed.includes(g.id)?'done':''}"><span class="gemChip" style="background:${state.completed.includes(g.id)?g.color:'#c9bed1'}"></span><span>${state.completed.includes(g.id)?g.name:'Oculta'}</span></div>`).join('');
- drawEnemyBoard(); }
+ $('actionHint').textContent=boardMode==='mine'?'Aquí puedes revisar tu distribución. Para atacar, cambia al yacimiento rival.':
+ end?'Partida finalizada.':state.phase==='reveal'?'La reconstrucción no consume tiempo de ningún jugador.':state.waiting?'Esperando reconexión del rival.':window._mode==='radar'?'El radar cuenta señales dentro de nueve nodos.':'Excava escribiendo un par ordenado; los fragmentos se revelan tras la perforación.';
+ $('completeCount').textContent=`${shown.completed.length}/7`;
+ $('completeList').innerHTML=GEMS.map(g=>`<div class="completeItem ${shown.completed.includes(g.id)?'done':''}"><span class="gemChip" style="background:${shown.completed.includes(g.id)?g.color:'#c9bed1'}"></span><span>${shown.completed.includes(g.id)?g.name:'Oculta'}</span></div>`).join('');
+ if(state.phase==='playing'||state.phase==='reveal'||state.phase==='ended')renderBoardOnly();
+}
 function renderSetup(){renderGemButtons();const placed=Object.keys(state.placements).length,me=state.players[state.me],ready=me.ready;
  $('setupStatus').textContent=`${placed}/7 gemas`;$('readyCount').textContent=`${state.players.filter(Boolean).filter(p=>p.ready).length}/2 listos`;
  const button=$('readyBtn');button.className=ready?'readyDone':placed===7?'readyActive':'readyPending';button.disabled=false;
@@ -774,7 +902,7 @@ function updateCountdown(){const screen=$('countdownOverlay');if(!state||state.p
  $('countdownSubtitle').textContent=left<350?'¡A EXCAVAR!':'¡Prepárate para explorar!';
  cancelAnimationFrame(countdownFrame);countdownFrame=requestAnimationFrame(updateCountdown);
 }
-function leaveClient(){state=null;prevState=null;showHome=false;sessionRoom='';myToken='';setupAnchor=null;setupHover=null;setupPendingAction='';modalKind='';closeModal();history.replaceState(null,'',location.pathname);render();}
+function leaveClient(){clearTimeout(excavationTimeout);pendingExcavation=null;visualState=null;inFlight=null;hideExcavation();clockSnapshot=null;boardMode='enemy';state=null;prevState=null;showHome=false;sessionRoom='';myToken='';setupAnchor=null;setupHover=null;setupPendingAction='';modalKind='';closeModal();history.replaceState(null,'',location.pathname);render();}
 function leaveRoom(){if(!state)return;const inGame=state.phase==='playing'||state.phase==='countdown';
  if(!confirm(inGame?'Si sales, abandonarás la partida y ganará tu rival. ¿Confirmas?':'¿Salir de esta sala?'))return;
  send({type:'leave'});
@@ -788,7 +916,7 @@ $('leaveHomeBtn').onclick=leaveRoom;
 $('shareBtn').onclick=async()=>{const url=location.origin+'/?sala='+state.code; try{await navigator.clipboard.writeText(url); toast('Enlace copiado');}catch{prompt('Copia este enlace:',url);}}; $('newRoomBtn').onclick=leaveRoom;
 $('rotateBtn').onclick=()=>{if(state?.players[state.me]?.ready)return;setupRotation=(setupRotation+1)%4;renderSetup();};
 $('removeBtn').onclick=()=>{setupPendingAction='remove';send({type:'remove',id:selectedGem});};
-$('clearBtn').onclick=()=>{setupPendingAction='reset';setupAnchor=null;setupHover=null;send({type:'reset'});};
+$('clearBtn').onclick=()=>{if(!confirm('¿Vaciar todas las gemas colocadas?'))return;setupPendingAction='reset';setupAnchor=null;setupHover=null;send({type:'reset'});};
 $('autoBtn').onclick=()=>{setupPendingAction='auto';setupAnchor=null;setupHover=null;send({type:'auto'});};
 function buryGem(){if(!state||state.phase!=='setup'||state.players[state.me].ready)return;
  const prev=currentPreview();if(!setupAnchor||!prev)return toast('Toca una posición del tablero primero.');
@@ -804,15 +932,15 @@ $('readyBtn').onclick=()=>{
   toast(`Aún debes enterrar: ${missing.join(', ')}.`);return;
  }
  setupAnchor=null;setupHover=null;send({type:'ready',value:!me.ready});
-}; $('rulesBtn').onclick=()=>openModal('rules'); $('rulesBtn2').onclick=()=>openModal('rules'); $('myBoardBtn').onclick=()=>openModal('myBoard'); $('historyBtn').onclick=()=>openModal('history'); $('closeModalBtn').onclick=closeModal; $('modalWrap').onclick=e=>{if(e.target=== $('modalWrap')) closeModal();};
+}; $('rulesBtn').onclick=()=>openModal('rules'); $('rulesBtn2').onclick=()=>openModal('rules'); $('tabMine').onclick=()=>setBoardMode('mine');$('tabRival').onclick=()=>setBoardMode('enemy');$('returnRivalBtn').onclick=()=>setBoardMode('enemy'); $('historyBtn').onclick=()=>openModal('history'); $('closeModalBtn').onclick=closeModal; $('modalWrap').onclick=e=>{if(e.target=== $('modalWrap')) closeModal();};
 $('shotModeBtn').onclick=()=>{window._mode='shot'; renderPlay();}; $('radarModeBtn').onclick=()=>{if($('radarModeBtn').disabled) return; window._mode='radar'; renderPlay();};
-function performAction(){if($('coordX').value.trim()===''||$('coordY').value.trim()==='')return toast('Escribe las dos coordenadas.'); const x=Number($('coordX').value), y=Number($('coordY').value); if(!Number.isInteger(x)||!Number.isInteger(y)||x<MIN||x>MAX||y<MIN||y>MAX) return toast('Las coordenadas deben ser enteros entre −5 y 5.'); send({type:(window._mode==='radar'?'radar':'shot'),x,y});}
+function performAction(){if(inFlight||pendingExcavation)return;if(!state||state.phase!=='playing'||state.active!==state.me||boardMode!=='enemy')return toast('No es tu turno de excavar en el yacimiento rival.');if($('coordX').value.trim()===''||$('coordY').value.trim()==='')return toast('Escribe las dos coordenadas.');const x=Number($('coordX').value),y=Number($('coordY').value);if(!Number.isInteger(x)||!Number.isInteger(y)||x<MIN||x>MAX||y<MIN||y>MAX)return toast('Las coordenadas deben ser enteros entre −5 y 5.');const kind=window._mode==='radar'?'radar':'shot';if(kind==='shot'&&state.history.some(h=>h.pos===key(x,y)))return toast('Ya excavaste estas coordenadas.');if(kind==='radar'&&(x<=MIN||x>=MAX||y<=MIN||y>=MAX))return toast('El centro del radar debe estar entre −4 y 4.');inFlight={kind,x,y,start:performance.now()};if(kind==='shot')startExcavation(x,y,'enemy');send({type:kind,x,y});renderPlay();}
 $('actionBtn').onclick=performAction; ['coordX','coordY'].forEach(id=>{$(id).addEventListener('input',()=>state&&renderPlay()); $(id).addEventListener('keydown',e=>{if(e.key==='Enter')performAction();});});
 $('setupBoard').addEventListener('mousemove',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; setupHover=boardCellFromEvent($('setupBoard'),e); if(!setupAnchor) drawSetupBoard();}); $('setupBoard').addEventListener('mouseleave',()=>{if(!setupAnchor){setupHover=null; drawSetupBoard();}});
 $('setupBoard').addEventListener('click',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; const cell=boardCellFromEvent($('setupBoard'),e); if(!cell) return; const occupant=state.ownMap[key(cell.x,cell.y)]; if(occupant){selectedGem=occupant; setupRotation=state.placements[occupant].r; setupAnchor={x:state.placements[occupant].x,y:state.placements[occupant].y}; renderSetup(); return;} setupAnchor=cell; renderSetup();});
 // Las excavaciones solo se ordenan escribiendo pares ordenados; el tablero de búsqueda no acepta clics.
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
-drawHomeCatalog();roomFromUrl();renderHome();connect();
+$('buildVersion').textContent='v'+CLIENT_VERSION;drawHomeCatalog();roomFromUrl();renderHome();connect();
 </script>
 </body>
 </html>

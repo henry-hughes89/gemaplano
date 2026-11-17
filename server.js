@@ -3,7 +3,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
 const {WebSocketServer,WebSocket}=require('./websocket-lite');
 const L=require('./game-logic');
 const PORT=Number(process.env.PORT||3000);
-const VERSION='9.0.0';
+const VERSION='10.0.0';
 const rooms=new Map();
 const srv=http.createServer((req,res)=>{
   const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`);
@@ -45,7 +45,7 @@ function view(room,idx){
   players:room.players.map((v,i)=>v?{name:v.name,ready:v.ready,connected:connected(v),score:scoreboard(room,v),turns:v.turns}:null),
   placements:p.placements,ownMap,ownHits:e?e.shots:[],ownImpacts:e?e.shots.map(pos=>({pos,hit:!!ownMap[pos]})):[],enemyRevealed,history,radars:p.radars,
   completed,active:room.active,timers:room.timers,turn:p.turns+1,
-  winner:room.winner,endReason:room.endReason,log:room.log,countdownRemaining:room.phase==='countdown'?Math.max(0,room.countdownEndsAt-Date.now()):0,revealRemaining:room.phase==='reveal'?Math.max(0,room.revealEndsAt-Date.now()):0,
+  winner:room.winner,endReason:room.endReason,log:room.log,excavation:room.phase==='excavating'?room.excavation:null,scan:room.phase==='scanning'?room.scan:null,countdownRemaining:room.phase==='countdown'?Math.max(0,room.countdownEndsAt-Date.now()):0,revealRemaining:room.phase==='reveal'?Math.max(0,room.revealEndsAt-Date.now()):0,
   waiting:room.phase==='playing'&&(!connected(room.players[0])||!connected(room.players[1]))};
 }
 function broadcast(room){room.updated=Date.now();room.players.forEach((p,i)=>{if(p)send(p.ws,view(room,i));});}
@@ -64,7 +64,7 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
  const room=rooms.get(ws.room),idx=ws.player,p=room?.players[idx];if(!room||!p||p.ws!==ws)return error(ws,'Sesión no válida.');
  syncClock(room);
  if(m.type==='leave'){
-  if(room.phase==='playing'||room.phase==='countdown'||room.phase==='reveal'){
+  if(room.phase==='playing'||room.phase==='countdown'||room.phase==='reveal'||room.phase==='excavating'||room.phase==='scanning'||room.phase==='settling'){
    end(room,'withdraw',1-idx);
    announce(room,`${p.name} abandonó la partida.`);
    p.ws=null;ws.room=null;ws.player=null;
@@ -107,32 +107,50 @@ function onMessage(ws,raw){let m;try{m=JSON.parse(raw.toString())}catch{return e
   }
  }
  else if(m.type==='shot'||m.type==='radar'){
-  if(room.phase!=='playing'||room.waiting||!connected(room.players[0])||!connected(room.players[1]))return error(ws,'La partida no está lista para jugar.');
+  if(room.phase!=='playing'||!connected(room.players[0])||!connected(room.players[1]))return error(ws,'La partida no está lista para jugar.');
   if(room.active!==idx)return error(ws,'Todavía no es tu turno.');
   const x=m.x,y=m.y;if(!Number.isInteger(x)||!Number.isInteger(y)||x<L.MIN||x>L.MAX||y<L.MIN||y>L.MAX)return error(ws,'Las coordenadas deben ser enteros entre −5 y 5.');
   const enemy=room.players[1-idx],pos=L.key(x,y),nextTurn=p.turns+1;
-  let justComplete=[];
   if(m.type==='shot'){
-   if(p.shots.includes(pos))return error(ws,'Ya exploraste esas coordenadas.');
-   p.shots.push(pos);const hit=!!L.pointMap(enemy.placements)[pos];if(!hit)p.misses++;
-   const newCompleted=L.completedGems(enemy.placements,p.shots);
-   justComplete=newCompleted.filter(g=>!L.completedGems(enemy.placements,p.shots.slice(0,-1)).includes(g));
-   announce(room,`${p.name} exploró (${x}, ${y}): ${hit?'¡fragmento encontrado!':'sin gema'}.${justComplete.length?' Gema completada: '+justComplete.map(id=>L.GEMS.find(g=>g.id===id).name).join(', ')+'.':''}`);
-  }else{
-   if(nextTurn%5!==0)return error(ws,'El radar solo se habilita en los turnos propios 5, 10, 15, ...');
-   if(x<=L.MIN||x>=L.MAX||y<=L.MIN||y>=L.MAX)return error(ws,'El centro del radar debe estar entre −4 y 4.');
-   const n=L.radarCount(enemy.placements,x,y);p.radars.push({x,y,n});announce(room,`${p.name} utilizó el radar en (${x}, ${y}) y detectó ${n} nodos con gemas.`);
+    if(p.shots.includes(pos))return error(ws,'Ya exploraste esas coordenadas.');
+    // Publish the target first without disclosing the result. Clocks stop for both
+    // clients while the same excavation animation is running.
+    room.phase='excavating';room.excavation={actor:idx,x,y};room.excavationEndsAt=Date.now()+1100;room.lastTick=0;
+    broadcast(room);
+    return;
   }
-  p.turns++;
-  if(scoreboard(room,p).points===L.TOTAL){end(room,'completed',idx);}
-  else {const other=1-idx;const next=room.settings.mode==='timed'&&room.timers[other]<=0?idx:other;
-   // A completed gem triggers a synchronized, non-billable reveal for both players.
-   // The next player starts only AFTER this reveal; no clock is spent watching it.
-   if(m.type==='shot'&&justComplete.length){room.phase='reveal';room.pendingNext=next;room.revealEndsAt=Date.now()+3100;room.lastTick=0;}
-   else {room.active=next;room.lastTick=Date.now();}
-  }
+  if(nextTurn%5!==0)return error(ws,'El radar solo se habilita en los turnos propios 5, 10, 15, ...');
+  if(x<=L.MIN||x>=L.MAX||y<=L.MIN||y>=L.MAX)return error(ws,'El centro del radar debe estar entre −4 y 4.');
+  room.phase='scanning';room.scan={actor:idx,x,y};room.scanEndsAt=Date.now()+650;room.lastTick=0;broadcast(room);return;
  }
  else return error(ws,'Acción no reconocida.');
+ broadcast(room);
+}
+function commitScan(room){
+ if(room.phase!=='scanning'||!room.scan)return;
+ const {actor,x,y}=room.scan,p=room.players[actor],enemy=room.players[1-actor];
+ room.scan=null;room.scanEndsAt=0;
+ if(!p||!enemy){end(room,'withdraw',p?actor:1-actor);broadcast(room);return;}
+ const n=L.radarCount(enemy.placements,x,y);p.radars.push({x,y,n});p.turns++;
+ announce(room,`${p.name} escaneó (${x}, ${y}) y detectó ${n} nodos con gemas.`);
+ const other=1-actor;room.pendingNext=room.settings.mode==='timed'&&room.timers[other]<=0?actor:other;
+ room.phase='settling';room.settleEndsAt=Date.now()+1350;room.lastTick=0;broadcast(room);
+}
+function commitExcavation(room){
+ if(room.phase!=='excavating'||!room.excavation)return;
+ const {actor,x,y}=room.excavation,p=room.players[actor],enemy=room.players[1-actor];
+ const pos=L.key(x,y);room.excavation=null;room.excavationEndsAt=0;
+ if(!p||!enemy){end(room,'withdraw',p?actor:1-actor);broadcast(room);return;}
+ const before=L.completedGems(enemy.placements,p.shots);
+ p.shots.push(pos);const hit=!!L.pointMap(enemy.placements)[pos];if(!hit)p.misses++;
+ const completed=L.completedGems(enemy.placements,p.shots);
+ const gained=completed.filter(g=>!before.includes(g));p.turns++;
+ announce(room,`${p.name} excavó (${x}, ${y}): ${hit?'fragmento encontrado':'roca vacía'}.${gained.length?' Mineral reconstruido: '+gained.map(id=>L.GEMS.find(g=>g.id===id).name).join(', ')+'.':''}`);
+ if(scoreboard(room,p).points===L.TOTAL){end(room,'completed',actor);broadcast(room);return;}
+ const other=1-actor,next=room.settings.mode==='timed'&&room.timers[other]<=0?actor:other;
+ room.pendingNext=next;room.lastTick=0;
+ if(gained.length){room.phase='reveal';room.revealEndsAt=Date.now()+3100;}
+ else {room.phase='settling';room.settleEndsAt=Date.now()+550;}
  broadcast(room);
 }
 wss.on('connection',ws=>{ws.on('message',raw=>{try{onMessage(ws,raw);}catch(e){console.error('Error de acción:',e);error(ws,'No se pudo completar la acción.');}});
@@ -144,6 +162,12 @@ setInterval(()=>{for(const r of rooms.values()){
   if(r.players.every(connected)){r.phase='playing';r.lastTick=Date.now();announce(r,`¡A excavar! Comienza ${r.players[r.active].name}.`);}
   else {r.phase='setup';r.countdownEndsAt=0;for(const p of r.players)if(p)p.ready=false;}
   broadcast(r);
+ } else if(r.phase==='excavating'&&Date.now()>=r.excavationEndsAt){
+  commitExcavation(r);
+ } else if(r.phase==='scanning'&&Date.now()>=r.scanEndsAt){
+  commitScan(r);
+ } else if(r.phase==='settling'&&Date.now()>=r.settleEndsAt){
+  r.phase='playing';r.active=r.pendingNext;r.pendingNext=null;r.settleEndsAt=0;r.lastTick=Date.now();broadcast(r);
  } else if(r.phase==='reveal'&&Date.now()>=r.revealEndsAt){
   r.phase='playing';r.active=r.pendingNext;r.pendingNext=null;r.revealEndsAt=0;r.lastTick=Date.now();
   announce(r,`Turno de ${r.players[r.active].name}.`);broadcast(r);

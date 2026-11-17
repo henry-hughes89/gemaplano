@@ -21,6 +21,7 @@ async function main(){
  const victimState=aa.active===0?bb:aa;
  const perla=victimState.placements.perla,points=L.gemPoints('perla',perla.x,perla.y,perla.r);
  let pos=L.key(...points[0]);attacker.send({type:'shot',x:points[0][0],y:points[0][1]});
+ const pre=await attacker.get(m=>m.type==='state'&&m.phase==='excavating');assert(!pre.history.some(h=>h.pos===pos),'El resultado no debe aparecer antes de la excavación');
  const first=await attacker.get(m=>m.type==='state'&&m.history?.some(h=>h.pos===pos));
  const received=await defender.get(m=>m.type==='state'&&m.ownImpacts?.some(h=>h.pos===pos));
  assert.equal(first.history.at(-1).hit,true);
@@ -28,17 +29,20 @@ async function main(){
  assert.equal(received.ownImpacts.at(-1).hit,true,'La mina propia registra un acierto');
  assert.equal(Object.keys(received.ownMap).length,26,'La mina propia conserva las 26 ubicaciones');
  const targetState=aa.active===0?aa:bb;let missPos='';for(let x=-5;x<=5&&!missPos;x++)for(let y=-5;y<=5&&!missPos;y++){const p=L.key(x,y);if(!targetState.ownMap[p])missPos=p;}
+ await defender.get(m=>m.type==='state'&&m.phase==='playing'&&m.active!==aa.active);
  const [mx,my]=missPos.split(',').map(Number);defender.send({type:'shot',x:mx,y:my});
+ const minePre=await defender.get(m=>m.type==='state'&&m.phase==='excavating');assert(!minePre.history.some(h=>h.pos===missPos),'No revelar roca vacía antes del pico');
  const missed=await defender.get(m=>m.type==='state'&&m.history?.some(h=>h.pos===missPos));
  const reflected=await attacker.get(m=>m.type==='state'&&m.ownImpacts?.some(h=>h.pos===missPos));
  assert.equal(missed.history.at(-1).hit,false);
  assert.equal(reflected.ownImpacts.at(-1).hit,false,'La mina propia distingue las rocas vacías');
+ await attacker.get(m=>m.type==='state'&&m.phase==='playing'&&m.active===aa.active&&m.players[aa.active].turns===1);
  pos=L.key(...points[1]);attacker.send({type:'shot',x:points[1][0],y:points[1][1]});
  const completed=await attacker.get(m=>m.type==='state'&&m.completed?.includes('perla'));
  assert.equal(completed.players[completed.me].score.complete,1);
  for(const pt of points)assert.equal(completed.enemyRevealed[L.key(...pt)],'perla','Gema completa visible a color');
  assert.equal(completed.enemyRevealed[pos],'perla');
- console.log('OK: salas remotas, acierto gris, mina propia con impactos diferenciados, gema completa a color.');
+ console.log('OK v10: salas remotas, excavación oculta, acierto gris, mina propia, victoria parcial y gema completa.');
  a.ws.close();b.ws.close();srv.close();process.exit(0);
 }
 main().catch(err=>{console.error(err);process.exit(1)});

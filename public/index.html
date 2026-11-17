@@ -368,6 +368,120 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
 @media(max-width:800px){.boardTabs button{font-size:10px;padding:3px 6px;min-height:27px}.buildTag{font-size:9px;padding:4px}.excavate-stage{transform:translate(-50%,-50%) scale(.85)}}
 @media(prefers-reduced-motion:reduce){.excavate-stage *{animation:none!important}.excavate-stage .rock-shell{display:none}.excavate-stage .pickaxe{display:none}.excavate-stage .target-ring{opacity:1}.excavate-stage .grit{display:none}}
 
+
+
+/* Warm geological overlays and attention during the rival's turn. */
+#home .hero{background:radial-gradient(ellipse at 80% 80%,#9d703d57,transparent 47%),linear-gradient(140deg,#4a3a2e,#232823 70%)!important}
+#home .hero h2 em{color:#eebf7c!important}
+#home .cave-glow{background:radial-gradient(ellipse,#e0a05b63 0%,#bb793a21 35%,transparent 70%)}
+#home .homeGems{background:#27251de0;border-color:#877258}
+#home .catalogGem{background:#4a3b2ebd;border-color:#8a7354}
+#home .hero li{background:#443629a8;border-color:#b08d5c65}
+#playView .mainBoardHeading.mine{border-left-color:#7fbea5}#playView .mainBoardHeading.mine-alert{animation:radarGlow .6s 2}#playView .mainBoardHeading.rival{border-left-color:#e5b569}
+@media(max-width:800px){
+ #playView.opponent-turn .actionPanel .actionModes,#playView.opponent-turn .actionPanel .coords,#playView.opponent-turn .actionPanel #actionBtn{display:none!important}
+ #playView.opponent-turn .actionPanel{padding:7px!important}
+ #playView.opponent-turn #actionHint{display:block!important;min-height:0;font-size:11px;text-align:center}
+}
+/* v10 — sediment, rock and turn-driven display. Never allow player-controlled board swapping. */
+:root{--bg1:#191914;--bg2:#2a2923;--bg3:#201c18;--panel:#302820;--panel2:#4e3b2a;--line:#796249;--ink:#f8e9ca;--muted:#cbb89b;--shadow:rgba(16,10,7,.43);--board:#3b3027;--grid:#ab8a68;--axis:#edc58c;--node:#e6c59b;--gold:#e5b768;--teal:#69c9a9}
+body{background:radial-gradient(ellipse at 6% 0%,#68493260 0,transparent 38%),radial-gradient(ellipse at 91% 100%,#7d57413d 0,transparent 44%),linear-gradient(145deg,#27251f,#171915 63%,#32241d);}
+.panel{background:linear-gradient(145deg,#333128,#242720)!important;border-color:#756750!important}
+.roombar{background:linear-gradient(145deg,#453b2f,#25251e)!important;border-color:#83715c!important}
+.boardBox{border:7px solid #77726b;background:radial-gradient(ellipse at 35% 16%,#65574d,#3a322d 66%,#2b2825)!important;padding:9px!important;box-shadow:inset 0 0 0 3px #413b36,0 0 0 2px #aa9779,0 13px 26px #0c08099c!important;position:relative;overflow:hidden;}
+.boardBox::after{content:"";position:absolute;inset:2px;border:1px solid #d5bd967a;border-radius:19px;pointer-events:none;box-shadow:inset 0 0 17px #14110d70}
+#playView{grid-template-columns:minmax(0,1fr) clamp(300px,26vw,355px)!important;}
+#playView .sidePanel{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:hidden;}
+#playView .sidePanel>.toprow{flex:0 0 auto;margin-bottom:0}
+#playView .scoreStack{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:0 0 auto}
+#playView .scoreCard{background:linear-gradient(135deg,#4f4034,#342e29)!important;border:1px solid #877057!important;display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:7px;min-height:64px;}
+#playView .scoreCard strong{font-size:18px}#playView .scoreCard .clock{font-size:14px}
+#playView .scoreCard>.clock{align-self:flex-end;margin-top:-23px}
+#playView .sidePanel>.compactCard{background:linear-gradient(145deg,#453b32,#2e2c26)!important;border-color:#806a52!important;padding:8px;flex:0 0 auto}
+#playView .actionPanel{gap:6px}#playView .actionModes button{min-height:30px;padding:5px;font-size:12px}
+#playView .bigAction{min-height:37px;font-size:13px}
+#playView .actionHint{font-size:11px;min-height:0;line-height:1.2}
+#playView .coords{gap:3px;justify-content:center;align-items:center}
+#playView .coords .axis-entry{display:flex;gap:2px;align-items:center;justify-content:center;min-width:0;position:relative}
+#playView .coords .axis-title{font-size:11px;color:#eed4a4;text-transform:uppercase;font-weight:800}
+#playView .coords input{width:63px;height:33px;min-height:33px;padding:4px 2px;background:#201f1a;border-color:#8a7158;color:#ffe5b4;font-size:17px}
+#playView .coords .stepper{display:none}
+#playView .coords .comma,#playView .coords .paren{font-weight:900;font-size:22px;color:#eed4a4}
+#playView .miniBoardCard{min-height:0;flex:0 0 195px;display:flex;flex-direction:column;align-items:center;gap:4px;background:radial-gradient(ellipse at center,#483d32,#29231e);border:2px solid #94714a;border-radius:13px;padding:6px;overflow:hidden;}
+#playView .miniBoardCard.mine{border-color:#5e9b83}#playView .miniBoardCard.rival{border-color:#c99853}
+.miniHeading{display:flex;justify-content:space-between;gap:7px;align-items:center;align-self:stretch;font-size:11px;font-weight:900;color:#eecb96}
+#miniBoardDesc{font-size:9px;color:#baa78e;font-weight:600}
+#miniBoard{display:block;max-width:100%;min-height:0;height:calc(100% - 18px);aspect-ratio:1;pointer-events:none}
+.mainBoardHeading{display:flex;gap:7px;align-items:center;border-left:4px solid #dcb576;padding:3px 8px;background:#51402e;border-radius:7px;min-width:0}
+.mainBoardHeading.mine{border-left-color:#7fbea5;background:#2f473c}
+.mainBoardHeading strong{display:block;font-size:13px;letter-spacing:.05em;white-space:nowrap;color:#ffe3ac}
+.mainBoardHeading.mine strong{color:#b7f6d8}
+.mainBoardHeading small{display:block;font-size:10px;line-height:1.1;color:#d6c6ae}
+.boardMarker{font-size:20px;line-height:1}
+#playView .boardPanel>.toprow .turnPill{font-size:11px}
+.battleBoardBox.focus-change{animation:turnFocus .42s ease-out}
+@keyframes turnFocus{0%{filter:brightness(.75);transform:scale(.986)}100%{filter:brightness(1);transform:scale(1)}}
+#playView .completeList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:40px;gap:3px;align-content:start}
+#playView .completeItem{display:flex;flex-direction:row;gap:5px;align-items:center;justify-content:flex-start;min-height:36px;padding:3px 5px;background:#3d342b;border:1px solid #796651;color:#d5c7b0;border-radius:9px}
+#playView .completeItem.pending{opacity:.86}
+#playView .completeItem.done{background:#55452e;border-color:#d5ab68;color:#ffebc8}
+#playView .completeItem .collectionName{font-size:10.5px;display:block!important;white-space:nowrap}
+#playView .completeItem .collectionShape{display:block;min-width:47px;width:47px;height:31px;flex:0 0 47px}
+#playView .completeItem .collectionShape svg{width:100%;height:100%;display:block}
+#playView .completeItem .gemChip{display:none!important}
+#playView .infoButtons{margin-top:auto;flex:0 0 auto}
+#playView .infoButtons button{min-height:28px;padding:4px;font-size:11px}
+#playView .boardPanel{border-color:#806d51!important}
+#playView .sidePanel{border-color:#756a55!important}
+@media(max-height:800px) and (min-width:801px){#playView .miniBoardCard{flex-basis:155px}#playView .completeList{grid-auto-rows:34px}#playView .completeItem{min-height:29px}#playView .completeItem .collectionShape{height:26px}#playView .scoreCard{min-height:55px}#playView .actionHint{display:none}}
+@media(min-width:801px) and (max-width:1080px){#playView{grid-template-columns:minmax(0,1fr) 295px!important}#playView .miniBoardCard{flex-basis:145px}#playView .completeItem .collectionShape{min-width:37px;width:37px;flex-basis:37px}}
+@media(max-width:800px){
+ header{height:49px;padding:4px 8px!important;gap:5px!important}#shell{grid-template-rows:49px minmax(0,1fr)!important}
+ .brand{gap:5px}.logo{width:30px;height:30px;flex:none}.titlebox h1{font-size:17px;line-height:1}.titlebox p{font-size:9px}
+ .statusline{gap:3px;justify-content:flex-end;flex-wrap:nowrap}.statusline #buildVersion{display:none!important}
+ .statusline #netStatus{display:inline-flex!important;min-width:13px;width:13px;height:13px;overflow:hidden;font-size:0!important;padding:0!important;border:0!important;border-radius:50%;background:#b56c4f}
+ .statusline #netStatus.online{background:#60d9ac;box-shadow:0 0 0 2px #60d9ac22}
+ .statusline #netStatus.offline{background:#d48369}
+ .soundToggle{font-size:10px!important;min-height:27px!important;padding:4px 7px!important}
+ .roombar{min-height:35px!important;margin-bottom:0!important;padding:2px 5px!important;gap:3px;flex-wrap:nowrap!important}
+ .roombar .roominfo{gap:3px;flex-wrap:nowrap!important}.roomcode{font-size:12px;padding:3px 5px}.roombar button{font-size:10px;padding:3px 5px;white-space:nowrap}
+ .roombar #phaseBadge{display:none!important}.roombar #modeBadge{font-size:9px;padding:4px}
+ #setupView .boardPanel .setupPhaseTitle{font-size:12px!important;white-space:nowrap;letter-spacing:-.02em}
+ #setupView .boardPanel .setupPhaseTitle span{font-size:8px;padding:3px 4px}
+ #setupView .boardPanel .toprow{gap:3px}
+ #setupView #setupStatus{font-size:10px;padding:4px 7px;white-space:nowrap}
+ #playView{grid-template-columns:1fr!important;grid-template-rows:minmax(0,1fr) auto!important;gap:5px}
+ #playView .miniBoardCard{display:none!important}
+ #playView .sidePanel{gap:4px;padding:6px}
+ #playView .scoreStack{gap:5px}
+ #playView .scoreCard{min-height:44px;padding:4px 7px}
+ #playView .scoreCard strong{font-size:14px}
+ #playView .scoreCard .clock{font-size:12px}
+ #playView .sidePanel>.compactCard{padding:4px 6px}
+ #playView .actionPanel{gap:3px}
+ #playView .actionModes button{min-height:28px;padding:3px;font-size:11px}
+ #playView .coords{gap:6px;justify-content:center}
+ #playView .coords .axis-entry{flex-direction:column;gap:0;width:62px}
+ #playView .coords .axis-title{display:none}
+ #playView .coords .stepper{display:grid;place-items:center;width:45px;height:23px;min-height:23px;padding:0;border:0;border-radius:6px;background:#76604838;color:#ead5ad;font-size:18px;box-shadow:none;font-weight:600;line-height:1}
+ #playView .coords .stepper:disabled{opacity:.2}
+ #playView .coords input{width:58px;height:27px;min-height:27px;font-size:17px;pointer-events:none;border:none;background:transparent;color:#ffebc9;font-variant-numeric:tabular-nums}
+ #playView .bigAction{min-height:33px}
+ #playView .completeList{display:flex;flex-wrap:nowrap;gap:2px;grid-auto-rows:auto}
+ #playView .completeItem{flex:1 1 0;min-width:0;min-height:33px;padding:2px;display:flex;justify-content:center}
+ #playView .completeItem .collectionShape{width:100%;min-width:0;height:26px;flex:1 1 0}
+ #playView .completeItem .collectionName{display:none!important}
+ #playView .boardPanel .toprow{margin-bottom:3px}
+ .mainBoardHeading strong{font-size:11px}.mainBoardHeading small{font-size:9px}
+ .mainBoardHeading{padding:2px 4px}
+ .boardMarker{font-size:16px}
+ .boardBox{border-width:5px;padding:4px!important;border-radius:17px}
+ #playView .boardPanel{grid-template-rows:32px minmax(0,1fr) 12px}
+ #playView .sidePanel>.toprow{display:none}
+ #playView .actionHint{display:none}
+}
+@media(max-width:800px) and (max-height:740px){#playView .completeItem .collectionShape{height:18px}#playView .completeItem{min-height:20px}#playView .actionModes button{min-height:26px}#playView .coords .stepper{height:20px;min-height:20px}}
+
 </style>
 </head>
 <body>
@@ -382,7 +496,7 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
     </div>
     <div class="statusline">
       <button id="homeNavBtn" class="ghost homeNav hidden" type="button">⌂ Inicio</button>
-      <span id="buildVersion" class="buildTag" title="Versión publicada">v9</span>
+      <span id="buildVersion" class="buildTag" title="Versión publicada">v10</span>
       <button id="soundToggle" class="soundToggle" type="button" aria-pressed="false" aria-label="Activar sonido">♫ Sonido: no</button>
       <span id="netStatus" class="pill offline">● Conectando…</span>
     </div>
@@ -475,9 +589,9 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
 
       <div id="playView" class="hidden">
         <section class="panel boardPanel">
-          <div class="toprow"><div class="boardTabs" aria-label="Seleccionar tablero"><button id="tabRival" class="active" type="button">⛏ Yacimiento rival</button><button id="tabMine" type="button">◆ Mi mina</button></div><span id="turnPill" class="turnPill">Esperando…</span></div>
+          <div class="toprow"><div id="mainBoardHeading" class="mainBoardHeading rival" aria-live="polite"><span class="boardMarker" id="mainBoardMarker">⛏</span><div><strong id="mainBoardTitle">YACIMIENTO RIVAL</strong><small id="mainBoardSub">Tu turno de excavar</small></div></div><span id="turnPill" class="turnPill">Esperando…</span></div>
           <div class="boardWrap">
-            <div class="boardBox"><svg id="enemyBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero rival"></svg><svg id="ownPlayBoard" class="grid hidden" viewBox="0 0 460 460" aria-label="Mi mina: gemas propias e impactos recibidos"></svg></div>
+            <div class="boardBox battleBoardBox"><svg id="enemyBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero rival"></svg><svg id="ownPlayBoard" class="grid hidden" viewBox="0 0 460 460" aria-label="Mi mina: gemas propias e impactos recibidos"></svg></div>
             <div id="excavateStage" class="excavate-stage" aria-hidden="true"><div class="target-ring"></div><div class="rock-shell"></div><div class="pickaxe">⛏</div><div class="grit"></div><div class="ex-caption">EXCAVANDO</div></div>
             <div class="boardOverlay"><div id="battleNotice" class="notice hidden"></div></div>
           </div>
@@ -486,14 +600,15 @@ svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{curso
 
         <section class="panel sidePanel">
           <div class="toprow"><h2>Bitácora</h2><span id="turnCount" class="badge">Turno 1</span></div>
+          <div id="miniBoardCard" class="miniBoardCard mine" aria-label="Vista secundaria, informativa"><div class="miniHeading"><span id="miniBoardTitle">◆ MI MINA</span><span id="miniBoardDesc">Vista general</span></div><svg id="miniBoard" viewBox="0 0 460 460" aria-hidden="true"></svg></div>
           <div class="scoreStack">
             <div class="scoreCard"><div><div class="muted small" id="meName">Tú</div><strong id="meScore">0 / 26</strong><div class="small" id="meExtra">0 gemas completas</div></div><div id="meClock" class="clock">∞</div></div>
             <div class="scoreCard"><div><div class="muted small" id="opName">Rival</div><strong id="opScore">0 / 26</strong><div class="small" id="opExtra">0 gemas completas</div></div><div id="opClock" class="clock">∞</div></div>
           </div>
           <div class="compactCard actionPanel">
-            <div id="actionPanelMineHint"><span>Tu yacimiento: observa dónde excavó el rival.</span><button id="returnRivalBtn" type="button">Volver a excavar</button></div>
+            
             <div class="actionModes"><button id="shotModeBtn" class="mode active" type="button">⛏ Excavar</button><button id="radarModeBtn" class="mode" type="button">◈ Radar 3×3</button></div>
-            <div class="coords"><span>(</span><input id="coordX" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada x"><span>,</span><input id="coordY" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada y"><span>)</span></div>
+            <div class="coords" role="group" aria-label="Par ordenado"><span class="paren">(</span><div class="axis-entry"><span class="axis-title">x</span><button class="stepper plus" type="button" data-axis="X" data-step="1" aria-label="Aumentar x una unidad">+</button><input id="coordX" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada x"><button class="stepper minus" type="button" data-axis="X" data-step="-1" aria-label="Disminuir x una unidad">−</button></div><span class="comma">,</span><div class="axis-entry"><span class="axis-title">y</span><button class="stepper plus" type="button" data-axis="Y" data-step="1" aria-label="Aumentar y una unidad">+</button><input id="coordY" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada y"><button class="stepper minus" type="button" data-axis="Y" data-step="-1" aria-label="Disminuir y una unidad">−</button></div><span class="paren">)</span></div>
             <button id="actionBtn" class="primary bigAction" type="button">⛏ Excavar</button>
             <div id="actionHint" class="actionHint">Escribe el punto donde quieres excavar.</div>
           </div>
@@ -551,8 +666,8 @@ const X=x=>PAD+(x-MIN)*CELL, Y=y=>PAD+(MAX-y)*CELL;
 const save=(k,v)=>{try{localStorage.setItem(k,v)}catch{}}; const load=k=>{try{return localStorage.getItem(k)}catch{return null}};
 let ws=null,state=null,prevState=null,sessionRoom='',myToken='',homeTab='create',createMode='timed',selectedGem='perla',setupRotation=0,setupHover=null,setupAnchor=null,modalKind='',netConnected=false,retryCount=0,battleNoticeTimer=0,radarPulse=null,lastShotPulse=null;
 let discoveryTimeout=null, digFxTimeout=null,showHome=false,setupPendingAction='',countdownEndsAtClient=0,countdownFrame=0;
-const CLIENT_VERSION='9.0.0';
-let boardMode='enemy',visualState=null,inFlight=null,pendingExcavation=null,clockSnapshot=null,excavationTimeout=0;
+const CLIENT_VERSION='10.0.0';
+let boardMode='enemy',visualState=null,inFlight=null,pendingExcavation=null,clockSnapshot=null,excavationTimeout=0,focusAfterExcavation=null;
 // Sonidos originales sintetizados en el navegador (sin archivos externos).
 let soundEnabled=load('gemaplano_sound')==='1', audioContext=null;
 function updateSoundToggle(){const b=$('soundToggle');b.textContent=soundEnabled?'♫ Sonido: sí':'♫ Sonido: no';b.classList.toggle('on',soundEnabled);b.setAttribute('aria-pressed',String(soundEnabled));b.setAttribute('aria-label',soundEnabled?'Desactivar sonido':'Activar sonido');}
@@ -602,6 +717,7 @@ function updateClockLabels(){if(!state||state.phase==='setup'||state.phase==='co
 setInterval(updateClockLabels,200);
 function ingestState(next){
  const old=state;prevState=state;state=next;
+ if(!pendingExcavation && !['excavating','scanning','settling','reveal'].includes(next.phase))setAutomaticFocus(next);
  clockSnapshot={timers:next.timers.slice(),active:next.active,phase:next.phase,waiting:next.waiting,at:performance.now()};
  if(next.version&&next.version!==CLIENT_VERSION)toast('La versión del servidor no coincide: actualiza la página.');
  if(setupPendingAction && next.phase==='setup'){
@@ -610,6 +726,38 @@ function ingestState(next){
    if(action==='place'){const missing=GEMS.find(g=>!next.placements[g.id]);if(missing){selectedGem=missing.id;setupRotation=0;}}
  }
  if(next.phase==='countdown'&&old?.phase!=='countdown')countdownEndsAtClient=performance.now()+(next.countdownRemaining||3300);
+ // Server-authoritative suspense: the target is broadcast first, while the
+ // result remains hidden on both clients and neither player's clock advances.
+ if(next.phase==='scanning'&&next.scan){
+   boardMode=next.scan.actor===next.me?'enemy':'mine';
+   if(old?.phase!=='scanning'&&next.scan.actor===next.me){radarPulse={x:next.scan.x,y:next.scan.y,n:'…',until:Date.now()+2600};playCue('radar');}
+   render();return;
+ }
+ if(old?.phase==='scanning'&&next.phase!=='scanning'){
+   inFlight=null;boardMode=old.scan?.actor===next.me?'enemy':'mine';
+   detectNonShotEvents(old,next);render();return;
+ }
+ if(next.phase==='excavating'&&next.excavation){
+   visualState=null;pendingExcavation=null;
+   boardMode=focusForTurn(next);render();
+   if(old?.phase!=='excavating' || old.excavation?.x!==next.excavation.x || old.excavation?.y!==next.excavation.y){
+     startExcavation(next.excavation.x,next.excavation.y,next.excavation.actor===next.me?'enemy':'mine');
+   }
+   return;
+ }
+ if(old?.phase==='excavating'&&next.phase!=='excavating'&&old.excavation){
+   hideExcavation();inFlight=null;visualState=null;pendingExcavation=null;
+   const actor=old.excavation.actor,ownTurn=actor===next.me,x=old.excavation.x,y=old.excavation.y,pos=key(x,y);
+   boardMode=ownTurn?'enemy':'mine';
+   const hit=ownTurn?!!next.history?.find(h=>h.pos===pos)?.hit:!!myMineMap(next)[pos];
+   lastShotPulse={x,y,kind:ownTurn?(hit?'hit':'miss'):(hit?'rival-hit':'rival-miss'),onOwn:!ownTurn,until:Date.now()+1200};
+   render();
+   const gems=ownTurn?(next.completed||[]).filter(id=>!(old.completed||[]).includes(id)):ownCompleted(next).filter(id=>!ownCompleted(old).includes(id));
+   if(gems.length){showNotice(ownTurn?'¡Mineral completamente reconstruido!':'Tu rival reconstruyó una de tus gemas.',ownTurn?'win':'alert',1800);playCue(ownTurn?'complete':'rival-complete');queueDiscovery(gems[0],!ownTurn);}
+   else if(hit){showNotice(ownTurn?`¡Fragmento encontrado en (${pos})!`:`Tu rival encontró mineral en (${pos}).`,ownTurn?'hit':'alert',1700);playCue(ownTurn?'hit':'rival-hit');}
+   else{showNotice(ownTurn?`Roca vacía en (${pos}).`:`Tu rival excavó roca vacía en (${pos}).`,'',1400);playCue(ownTurn?'miss':'rival-miss');}
+   return;
+ }
  if(old&&old.phase!=='setup'){
   const myNewShot=(next.history?.length||0)>(old.history?.length||0);
   const theirNewShot=(next.ownHits?.length||0)>(old.ownHits?.length||0);
@@ -685,10 +833,10 @@ function finishExcavation(){const pending=pendingExcavation;if(!pending)return;
    if(ownGained.length){showNotice('El rival reconstruyó una de tus gemas.','alert',1700);playCue('rival-complete');queueDiscovery(ownGained[0],true);}
    else{showNotice(hit?`El rival descubrió un fragmento en (${pos}).`:`El rival excavó roca vacía en (${pos}).`,hit?'alert':'',1700);playCue(hit?'rival-hit':'rival-miss');}
  }
- render();setTimeout(()=>{if(state&&state.phase!=='setup')renderBoardOnly();},1350);
+ setAutomaticFocus(state);render();setTimeout(()=>{if(state&&state.phase!=='setup')renderBoardOnly();},1350);
  if(old.phase!=='ended'&&next.phase==='ended')setTimeout(()=>{if(state?.phase==='ended')showNotice(next.winner===next.me?'¡Ganaste la partida!':next.winner===-1?'Empate':'Ganó tu rival.',next.winner===next.me?'win':'alert',2300);},2100);
 }
-function flashMineIndicator(){const b=$('tabMine');if(!b)return;b.classList.remove('mine-alert');void b.offsetWidth;b.classList.add('mine-alert');setTimeout(()=>b.classList.remove('mine-alert'),1900);}
+function flashMineIndicator(){const b=$('mainBoardHeading');if(!b)return;b.classList.remove('mine-alert');void b.offsetWidth;b.classList.add('mine-alert');setTimeout(()=>b.classList.remove('mine-alert'),1900);}
 function gem3DMarkup(gem){
  // The seven crystal silhouettes preserve the actual node geometry. Each facet is shaded with its gem color.
  const pts=gem.cells;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const mx=Math.min(...xs),my=Math.min(...ys),maxX=Math.max(...xs)-mx,maxY=Math.max(...ys)-my;
@@ -749,22 +897,34 @@ function jewelCell(cx,cy,color,fragment=false,scale=1){
 }
 function baseGrid(prefix="mine"){
  let out=`<defs>
-   <radialGradient id="${prefix}_mineLight" cx="30%" cy="12%" r="85%"><stop offset="0" stop-color="#333e39"/><stop offset=".55" stop-color="#202b28"/><stop offset="1" stop-color="#101b19"/></radialGradient>
+   <radialGradient id="${prefix}_mineLight" cx="25%" cy="14%" r="91%"><stop offset="0" stop-color="#635043"/><stop offset=".53" stop-color="#42372e"/><stop offset="1" stop-color="#241e1c"/></radialGradient>
    <filter id="${prefix}_jewelDrop"><feDropShadow dx="0.5" dy="2" stdDeviation="1.7" flood-color="#000" flood-opacity=".7"/></filter>
    <filter id="${prefix}_seamGlow"><feGaussianBlur stdDeviation="4"/></filter>
-   <linearGradient id="${prefix}_seamA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d19d5d" stop-opacity=".38"/><stop offset="1" stop-color="#6f875c" stop-opacity=".04"/></linearGradient>
+   <linearGradient id="${prefix}_seamA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c79a61" stop-opacity=".40"/><stop offset="1" stop-color="#9a6c42" stop-opacity=".06"/></linearGradient>
   </defs>
-  <rect x="9" y="9" width="442" height="442" rx="23" fill="url(#${prefix}_mineLight)" stroke="#8c7960" stroke-opacity=".35" stroke-width="1.5"/>
-  <path d="M15 71L78 46 132 68 202 26 289 52 355 28 443 79M14 388L85 416 153 390 222 438 300 399 380 421 444 373" fill="none" stroke="#a58f70" opacity=".18" stroke-width="10" stroke-linejoin="round"/>
+  <rect x="10" y="10" width="440" height="440" rx="23" fill="url(#${prefix}_mineLight)" stroke="#b08e68" stroke-opacity=".62" stroke-width="1.5"/>
+  <path d="M15 71L78 46 132 68 202 26 289 52 355 28 443 79M14 388L85 416 153 390 222 438 300 399 380 421 444 373" fill="none" stroke="#b38e63" opacity=".23" stroke-width="10" stroke-linejoin="round"/>
   <path d="M22 258L69 237 105 267 162 240 205 258M267 85L313 69 347 100 396 84 439 106M95 420L128 389 167 397M333 292L356 267 420 280" stroke="url(#${prefix}_seamA)" stroke-width="3" fill="none" opacity=".52"/>
-  <path d="M33 191l26 -16 16 9 22 -11M310 386l22 -22 23 6 19 -10" stroke="#6d7565" stroke-opacity=".28" fill="none" stroke-width="2"/>`;
+  <path d="M33 191l26 -16 16 9 22 -11M310 386l22 -22 23 6 19 -10" stroke="#cc9861" stroke-opacity=".26" fill="none" stroke-width="2"/>`;
  for(let i=MIN;i<=MAX;i++){
-  out+=`<line x1="${X(i)}" y1="${Y(MIN)}" x2="${X(i)}" y2="${Y(MAX)}" stroke="${i===0?'#d8c398':'#789087'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
+  out+=`<line x1="${X(i)}" y1="${Y(MIN)}" x2="${X(i)}" y2="${Y(MAX)}" stroke="${i===0?'#e1c28e':'#9e8470'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
   out+=`<line x1="${X(MIN)}" y1="${Y(i)}" x2="${X(MAX)}" y2="${Y(i)}" stroke="${i===0?'#d8c398':'#789087'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
-  out+=`<text x="${X(i)}" y="430" text-anchor="middle" font-size="12" font-weight="650" fill="#c5cab6">${i}</text><text x="30" y="${Y(i)+4}" text-anchor="middle" font-size="12" font-weight="650" fill="#c5cab6">${i}</text>`;
+  out+=`<text x="${X(i)}" y="430" text-anchor="middle" font-size="12" font-weight="650" fill="#e9d3ad">${i}</text><text x="30" y="${Y(i)+4}" text-anchor="middle" font-size="12" font-weight="650" fill="#e9d3ad">${i}</text>`;
  }
- for(let x=MIN;x<=MAX;x++)for(let y=MIN;y<=MAX;y++)out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="2.6" fill="#d6c6a3" opacity=".81"/>`;
- return out;
+ for(let x=MIN;x<=MAX;x++)for(let y=MIN;y<=MAX;y++)out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="2.6" fill="#edcb9d" opacity=".81"/>`;
+ out+=rockFrame();return out;
+}
+function rockFrame(){
+ // Deterministic faceted stones; generated as SVG shapes without raster assets or heavy filters.
+ let out='<g aria-hidden="true" opacity=".96">';
+ for(let edge=0;edge<4;edge++)for(let i=0;i<16;i++){
+  const u=15+i*27.7,shift=Math.sin((i+1)*(edge+4)*3.11),r=10+(i%3)*2.3;
+  const cx=edge===0?u:edge===1?u:edge===2?10+shift*3:450+shift*3;
+  const cy=edge===0?9+shift*3:edge===1?450+shift*3:u;
+  const colors=['#74716b','#65615b','#8c8379','#514e4c','#9b8f7f'];const col=colors[(i+edge*3)%colors.length];
+  out+=`<path d="M${cx-r} ${cy-2}l${r*.53} -${r*.9} ${r*1.05} -${r*.1} ${r*.75} ${r*.85} -${r*.6} ${r*.8} -${r*1.3} ${r*.15}Z" fill="${col}" stroke="#b3a18b" stroke-opacity=".45" stroke-width=".8"/><path d="M${cx-r} ${cy-2}l${r*.53} -${r*.9} ${r*.43} ${r*.85}Z" fill="#e0d2bd" fill-opacity=".15"/><path d="M${cx-r*.25} ${cy-3}l${r*.5} ${r*.38} ${r*.23} -${r*.12}" fill="none" stroke="#ccc1ad" stroke-opacity=".23" stroke-width=".7"/><circle cx="${cx+r*.12}" cy="${cy+r*.29}" r=".8" fill="#ddd0b9" fill-opacity=".30"/>`;
+ }
+ return out+'</g>';
 }
 function drawSetupBoard(){const svg=$('setupBoard');if(!svg)return;let out=baseGrid('setup');
  const preview=currentPreview(),isReady=!!state?.players?.[state.me]?.ready;
@@ -796,7 +956,7 @@ function positionBoardBury(){const button=$('boardBuryBtn');if(!button||!state||
  const err=localValid(state.placements,p.id,p.x,p.y,p.r);button.disabled=!!err;button.title=err||'Confirmar enterrado';button.textContent=err?'Ubicación inválida':'⛏ Enterrar';button.classList.remove('hidden');
 }
 
-function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=baseGrid('enemy');
+function drawEnemyBoard(targetId='enemyBoard'){const svg=$(targetId); if(!svg) return; let out=baseGrid(targetId);
  // Persistent, subtle radar footprints: retain the nine-node region for later deductions.
  for(const r of (visualState||state)?.radars||[]){
   // Mientras está activa la animación, se oculta la huella persistente de ese radar.
@@ -846,36 +1006,69 @@ function openModal(kind){modalKind=kind; $('modalWrap').classList.add('open'); $
  if(kind==='rules'){ $('modalTitle').textContent='Reglas rápidas'; $('modalSub').textContent='Resumen compacto de la partida.'; $('modalBoardTitle').textContent='Plano'; $('modalSideTitle').textContent='Cómo se juega'; $('modalBadge').textContent='Ayuda'; $('modalSide').innerHTML=`<div class="compactCard"><ul class="logList"><li>Busca nodos del rival escribiendo pares ordenados.</li><li>El radar 3×3 aparece en los turnos 5, 10, 15…</li><li>Las gemas se muestran grises hasta completarlas.</li><li>Gana quien descubra todas las gemas rivales o tenga más puntos cuando acaben ambos relojes.</li></ul></div>`; }
  drawModalBoard(kind); }
 function closeModal(){modalKind=''; $('modalWrap').classList.remove('open'); $('modalWrap').setAttribute('aria-hidden','true');}
-function setBoardMode(mode){if(pendingExcavation||inFlight){toast('Termina la excavación antes de cambiar de tablero.');return;}
- boardMode=mode;renderPlay();}
-function renderBoardOnly(){if(boardMode==='mine'){drawModalBoard('myBoard','ownPlayBoard');}else{drawEnemyBoard();}}
+function focusForTurn(s=state){
+ if(!s)return 'enemy';
+ if(s.phase==='excavating'&&s.excavation)return s.excavation.actor===s.me?'enemy':'mine';
+ if(s.phase==='scanning'&&s.scan)return s.scan.actor===s.me?'enemy':'mine';
+ return s.active===s.me?'enemy':'mine';
+}
+function renderBoardOnly(){
+ if(!state)return;
+ if(boardMode==='mine')drawModalBoard('myBoard','ownPlayBoard');else drawEnemyBoard('enemyBoard');
+ const miniMode=boardMode==='mine'?'enemy':'mine';
+ if(miniMode==='mine')drawModalBoard('myBoard','miniBoard');else drawEnemyBoard('miniBoard');
+}
+function setAutomaticFocus(next=state){
+ const nextMode=focusForTurn(next);
+ if(boardMode!==nextMode){boardMode=nextMode;const box=document.querySelector('#playView .battleBoardBox');if(box){box.classList.remove('focus-change');void box.offsetWidth;box.classList.add('focus-change');}}
+}
 function renderPlay(){if(!state)return;const shown=visualState||state,me=shown.players[shown.me],op=shown.players[1-shown.me];
  const myTurn=state.phase==='playing'&&state.active===state.me&&!state.waiting;
  const canRadar=myTurn&&state.turn%5===0;const end=state.phase==='ended';
- $('tabRival').classList.toggle('active',boardMode==='enemy');$('tabMine').classList.toggle('active',boardMode==='mine');
- $('enemyBoard').classList.toggle('hidden',boardMode==='mine');$('ownPlayBoard').classList.toggle('hidden',boardMode!=='mine');
- $('boardHint').textContent=boardMode==='mine'?'Tus 26 nodos a color. Grieta dorada: acierto rival. X rosada: roca vacía.':'Introduce (x, y) para excavar. El tablero muestra tus hallazgos.';
- $('actionPanelMineHint').classList.toggle('active',boardMode==='mine');
+ $('playView').classList.toggle('opponent-turn',!myTurn);
+ const mineFocus=boardMode==='mine';
+ $('mainBoardHeading').className='mainBoardHeading '+(mineFocus?'mine':'rival');
+ $('mainBoardMarker').textContent=mineFocus?'◆':'⛏';
+ $('mainBoardTitle').textContent=mineFocus?'MI MINA':'YACIMIENTO RIVAL';
+ $('mainBoardSub').textContent=mineFocus?'El rival explora tu yacimiento':'Aquí descubres las gemas del rival';
+ $('enemyBoard').classList.toggle('hidden',mineFocus);$('ownPlayBoard').classList.toggle('hidden',!mineFocus);
+ $('miniBoardTitle').textContent=mineFocus?'⛏ YACIMIENTO RIVAL':'◆ MI MINA';
+ $('miniBoardDesc').textContent='Vista secundaria';
+ $('miniBoardCard').className='miniBoardCard '+(mineFocus?'rival':'mine');
+ $('boardHint').textContent=mineFocus?'Tus gemas a color; las grietas indican aciertos del rival.':'Introduce el par (x, y) para excavar.';
  $('meName').textContent=me.name+' (tú)';$('opName').textContent=op?.name||'Rival';
  $('meScore').textContent=`${me.score.points} / ${TOTAL}`;$('opScore').textContent=`${op?.score.points||0} / ${TOTAL}`;
- $('meExtra').textContent=`${me.score.complete}/7 gemas completas`;$('opExtra').textContent=`${op?.score.complete||0}/7 gemas completas`;
+ $('meExtra').textContent=`${me.score.complete}/7 gemas`;$('opExtra').textContent=`${op?.score.complete||0}/7 gemas`;
  if(state.settings.mode==='free'){$('meClock').textContent='∞';$('opClock').textContent='∞';}else updateClockLabels();
- let turnMsg=end?(state.winner===-1?'Empate':state.winner===state.me?'Ganaste':'Ganó tu rival'):(state.phase==='reveal'?'Reconstruyendo gema…':state.waiting?'Conexión pausada':myTurn?'Tu turno':'Turno de '+(op?.name||'tu rival'));
- if(pendingExcavation)turnMsg='Excavando…';
+ let turnMsg=end?(state.winner===-1?'Empate':state.winner===state.me?'Ganaste':'Ganó tu rival'):(state.phase==='reveal'?'Gema completa':state.phase==='excavating'?'Excavando…':state.phase==='scanning'?'Escaneando…':state.phase==='settling'?'Resultado de excavación':state.waiting?'Conexión pausada':myTurn?'Tu turno':'Turno rival');
  $('turnPill').textContent=turnMsg;$('turnPill').className='turnPill '+(state.waiting?'wait':end&&state.winner!==state.me?'alert':'');
  $('turnCount').textContent=`Turno ${state.turn}`;
  window._mode=window._mode||'shot';if(window._mode==='radar'&&!canRadar)window._mode='shot';
- $('shotModeBtn').classList.toggle('active',window._mode==='shot');$('radarModeBtn').classList.toggle('active',window._mode==='radar');$('radarModeBtn').classList.toggle('radar-ready',canRadar);
- $('actionBtn').disabled=!myTurn||end||boardMode==='mine'||!!inFlight||!!pendingExcavation;
- $('radarModeBtn').disabled=!canRadar||boardMode==='mine'||!!inFlight||!!pendingExcavation;
- $('shotModeBtn').disabled=!myTurn||end||boardMode==='mine'||!!inFlight||!!pendingExcavation;
+ $('shotModeBtn').classList.toggle('active',window._mode==='shot');$('radarModeBtn').classList.toggle('active',window._mode==='radar');$('radarModeBtn').classList.toggle('radar-ready',canRadar);updateCoordinateMode();
+ $('actionBtn').disabled=!myTurn||end||mineFocus||!!inFlight||!!pendingExcavation;
+ $('radarModeBtn').disabled=!canRadar||mineFocus||!!inFlight||!!pendingExcavation;
+ $('shotModeBtn').disabled=!myTurn||end||mineFocus||!!inFlight||!!pendingExcavation;
  $('coordPreview').textContent=`(${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
  $('actionBtn').textContent=(window._mode==='radar'?'◈ Activar radar':'⛏ Excavar')+` (${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
- $('actionHint').textContent=boardMode==='mine'?'Aquí puedes revisar tu distribución. Para atacar, cambia al yacimiento rival.':
- end?'Partida finalizada.':state.phase==='reveal'?'La reconstrucción no consume tiempo de ningún jugador.':state.waiting?'Esperando reconexión del rival.':window._mode==='radar'?'El radar cuenta señales dentro de nueve nodos.':'Excava escribiendo un par ordenado; los fragmentos se revelan tras la perforación.';
- $('completeCount').textContent=`${shown.completed.length}/7`;
- $('completeList').innerHTML=GEMS.map(g=>`<div class="completeItem ${shown.completed.includes(g.id)?'done':''}"><span class="gemChip" style="background:${shown.completed.includes(g.id)?g.color:'#c9bed1'}"></span><span>${shown.completed.includes(g.id)?g.name:'Oculta'}</span></div>`).join('');
- if(state.phase==='playing'||state.phase==='reveal'||state.phase==='ended')renderBoardOnly();
+ $('actionHint').textContent=mineFocus?'Observa cómo el rival excava en tu mina.':end?'Partida finalizada.':state.phase==='reveal'?'Los relojes están en pausa.':state.waiting?'Esperando reconexión.':window._mode==='radar'?'El radar cuenta nodos con gema en una zona 3×3.':'Busca fragmentos con pares ordenados.';
+ const completed=new Set(shown.completed||[]);
+ $('completeCount').textContent=`${completed.size}/7`;
+ $('completeList').innerHTML=GEMS.map(g=>{const done=completed.has(g.id);return `<div class="completeItem ${done?'done':'pending'}" title="${esc(g.name)}: ${g.cells.length} nodos"><span class="collectionShape" aria-hidden="true">${gemSilhouette(g,done)}</span><span class="collectionName">${esc(g.name)}</span></div>`}).join('');
+ updateCoordinateMode();
+ if(['playing','excavating','scanning','settling','reveal','ended'].includes(state.phase))renderBoardOnly();
+}
+function gemSilhouette(g,done){const pts=rotate(g.cells,0),maxX=Math.max(...pts.map(p=>p[0])),maxY=Math.max(...pts.map(p=>p[1]));
+ const u=10, w=(maxX+1)*u+5,h=(maxY+1)*u+5;
+ return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Forma de ${esc(g.name)}"><g fill="${done?g.color:'#a29b90'}" stroke="${done?'#ffe6af':'#d0c5b6'}" stroke-width="1.1">${pts.map(([x,y])=>`<polygon points="${x*u+u/2+2},${y*u+2} ${x*u+u+2},${y*u+u/2+2} ${x*u+u/2+2},${y*u+u+2} ${x*u+2},${y*u+u/2+2}"/>`).join('')}</g></svg>`;
+}
+function updateCoordinateMode(){
+ const mobile=window.matchMedia('(max-width:800px)').matches;
+ const min=window._mode==='radar'?-4:-5,max=window._mode==='radar'?4:5;
+ for(const axis of ['X','Y']){
+  const input=$('coord'+axis);input.readOnly=mobile;input.inputMode=mobile?'none':'numeric';input.tabIndex=mobile?-1:0;
+  const n=Number(input.value);if(mobile&&(!Number.isInteger(n)||n<min||n>max))input.value=Math.max(min,Math.min(max,Number.isFinite(n)?Math.round(n):0));
+  for(const step of [1,-1]){const btn=document.querySelector(`.stepper[data-axis="${axis}"][data-step="${step}"]`);if(btn)btn.disabled=!mobile||Number(input.value)+step<min||Number(input.value)+step>max;}
+ }
 }
 function renderSetup(){renderGemButtons();const placed=Object.keys(state.placements).length,me=state.players[state.me],ready=me.ready;
  $('setupStatus').textContent=`${placed}/7 gemas`;$('readyCount').textContent=`${state.players.filter(Boolean).filter(p=>p.ready).length}/2 listos`;
@@ -891,7 +1084,7 @@ function render(){renderHome();const inRoom=!!state;
  if(!inRoom){$('countdownOverlay').classList.add('hidden');return;}
  $('roomLabel').textContent=state.code;
  $('modeBadge').textContent=state.settings.mode==='timed'?`⏱ ${state.settings.minutes} min/jugador`:'∞ Sin reloj';
- $('phaseBadge').textContent=state.phase==='setup'?'Preparación':state.phase==='countdown'?'Comienza pronto':state.phase==='playing'?'En juego':'Finalizada';
+ $('phaseBadge').textContent=state.phase==='setup'?'Preparación':state.phase==='countdown'?'Comienza pronto':state.phase==='playing'?'En juego':state.phase==='excavating'?'Excavando':state.phase==='scanning'?'Radar':state.phase==='settling'?'Resultado':state.phase==='reveal'?'Revelación':'Finalizada';
  $('setupView').classList.toggle('hidden',state.phase!=='setup');$('playView').classList.toggle('hidden',state.phase==='setup'||state.phase==='countdown');
  if(state.phase==='setup')renderSetup();else if(state.phase!=='countdown')renderPlay();
  updateCountdown();if(modalKind)openModal(modalKind);
@@ -932,10 +1125,13 @@ $('readyBtn').onclick=()=>{
   toast(`Aún debes enterrar: ${missing.join(', ')}.`);return;
  }
  setupAnchor=null;setupHover=null;send({type:'ready',value:!me.ready});
-}; $('rulesBtn').onclick=()=>openModal('rules'); $('rulesBtn2').onclick=()=>openModal('rules'); $('tabMine').onclick=()=>setBoardMode('mine');$('tabRival').onclick=()=>setBoardMode('enemy');$('returnRivalBtn').onclick=()=>setBoardMode('enemy'); $('historyBtn').onclick=()=>openModal('history'); $('closeModalBtn').onclick=closeModal; $('modalWrap').onclick=e=>{if(e.target=== $('modalWrap')) closeModal();};
+}; $('rulesBtn').onclick=()=>openModal('rules'); $('rulesBtn2').onclick=()=>openModal('rules'); $('historyBtn').onclick=()=>openModal('history'); $('closeModalBtn').onclick=closeModal; $('modalWrap').onclick=e=>{if(e.target=== $('modalWrap')) closeModal();};
 $('shotModeBtn').onclick=()=>{window._mode='shot'; renderPlay();}; $('radarModeBtn').onclick=()=>{if($('radarModeBtn').disabled) return; window._mode='radar'; renderPlay();};
 function performAction(){if(inFlight||pendingExcavation)return;if(!state||state.phase!=='playing'||state.active!==state.me||boardMode!=='enemy')return toast('No es tu turno de excavar en el yacimiento rival.');if($('coordX').value.trim()===''||$('coordY').value.trim()==='')return toast('Escribe las dos coordenadas.');const x=Number($('coordX').value),y=Number($('coordY').value);if(!Number.isInteger(x)||!Number.isInteger(y)||x<MIN||x>MAX||y<MIN||y>MAX)return toast('Las coordenadas deben ser enteros entre −5 y 5.');const kind=window._mode==='radar'?'radar':'shot';if(kind==='shot'&&state.history.some(h=>h.pos===key(x,y)))return toast('Ya excavaste estas coordenadas.');if(kind==='radar'&&(x<=MIN||x>=MAX||y<=MIN||y>=MAX))return toast('El centro del radar debe estar entre −4 y 4.');inFlight={kind,x,y,start:performance.now()};if(kind==='shot')startExcavation(x,y,'enemy');send({type:kind,x,y});renderPlay();}
-$('actionBtn').onclick=performAction; ['coordX','coordY'].forEach(id=>{$(id).addEventListener('input',()=>state&&renderPlay()); $(id).addEventListener('keydown',e=>{if(e.key==='Enter')performAction();});});
+$('actionBtn').onclick=performAction;
+['coordX','coordY'].forEach(id=>{$(id).addEventListener('input',()=>state&&renderPlay());$(id).addEventListener('keydown',e=>{if(e.key==='Enter')performAction();});});
+for(const btn of document.querySelectorAll('.stepper'))btn.onclick=()=>{if(!window.matchMedia('(max-width:800px)').matches)return;const input=$('coord'+btn.dataset.axis),step=Number(btn.dataset.step),min=window._mode==='radar'?-4:-5,max=window._mode==='radar'?4:5;input.value=String(Math.min(max,Math.max(min,Number(input.value)+step)));renderPlay();};
+window.addEventListener('resize',()=>{if(state?.phase==='playing'||state?.phase==='excavating'||state?.phase==='reveal'||state?.phase==='ended')updateCoordinateMode();});
 $('setupBoard').addEventListener('mousemove',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; setupHover=boardCellFromEvent($('setupBoard'),e); if(!setupAnchor) drawSetupBoard();}); $('setupBoard').addEventListener('mouseleave',()=>{if(!setupAnchor){setupHover=null; drawSetupBoard();}});
 $('setupBoard').addEventListener('click',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; const cell=boardCellFromEvent($('setupBoard'),e); if(!cell) return; const occupant=state.ownMap[key(cell.x,cell.y)]; if(occupant){selectedGem=occupant; setupRotation=state.placements[occupant].r; setupAnchor={x:state.placements[occupant].x,y:state.placements[occupant].y}; renderSetup(); return;} setupAnchor=cell; renderSetup();});
 // Las excavaciones solo se ordenan escribiendo pares ordenados; el tablero de búsqueda no acepta clics.

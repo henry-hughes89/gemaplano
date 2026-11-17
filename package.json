@@ -1,13 +1,13 @@
 {
   "name": "gemaplano-duelo",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "private": true,
-  "description": "GEMAPLANO v9 · Duelo de exploradores mineros y coordenadas",
+  "description": "GEMAPLANO v10 · Duelo de exploradores mineros y coordenadas",
   "scripts": {
     "start": "node server.js",
     "test": "node tests.js",
     "test:network": "node tests-network.js",
-    "test:v9": "node tests-v9.js"
+    "test:v10": "node tests-v10.js"
   },
   "dependencies": {},
   "engines": {

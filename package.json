@@ -1,0 +1,12 @@
+{
+  "name": "gemaplano-duelo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Duelo 1vs1 de coordenadas para 7.º básico",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests.js"
+  },
+  "dependencies": {},
+  "engines": {"node": ">=18"}
+}

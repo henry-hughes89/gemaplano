@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111b18">
+<title>GEMAPLANO · Duelo de exploradores mineros</title>
+<style>
+:root{
+  --bg1:#f6eadf; --bg2:#eddcf4; --bg3:#fff7ef;
+  --panel:#fffaf5; --panel2:#f6eefb; --line:#d8bfd8; --line-strong:#b88bcc;
+  --ink:#4b2747; --muted:#8c6c8a; --shadow:rgba(92,49,98,.14);
+  --board:#31193d; --grid:#8b6a9b; --axis:#f6d6ff; --node:#f8e6ff;
+  --primary:#a855f7; --primary-2:#7c3aed; --gold:#f59e0b; --teal:#10b981;
+  --alert:#ef476f; --soft-alert:#ffd8e2; --soft:#f0e1f8; --soft2:#fff1cf;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{font:15px/1.25 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(ellipse at 0% 0%,#ffe4c5 0,transparent 42%),radial-gradient(ellipse at 100% 100%,#ead6ff 0,transparent 48%),linear-gradient(135deg,var(--bg1),var(--bg2) 58%,var(--bg3));}
+button,input,select{font:inherit}
+button{border:0;border-radius:16px;padding:10px 14px;font-weight:800;color:var(--ink);background:var(--panel2);box-shadow:0 8px 18px var(--shadow);cursor:pointer;min-height:42px}
+button:hover:not(:disabled){transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+button.primary{background:linear-gradient(135deg,#ca89ff,#9b5cf6);color:white}
+button.secondary{background:linear-gradient(135deg,#ffe2a7,#f7b844)}
+button.ghost{background:#ffffffc4}
+button.radar-ready{animation:radarGlow 1s infinite alternate;background:linear-gradient(135deg,#ffe7ac,#ffbb35)}
+button.mode.active,button.toggle.active{background:linear-gradient(135deg,#ca89ff,#9b5cf6);color:#fff}
+input,select{border:2px solid #e1c9e6;border-radius:14px;min-height:42px;background:white;padding:8px 11px;color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #9b5cf6;outline-offset:2px}
+.hidden{display:none!important}
+.small{font-size:13px}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+#shell{height:100%;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+header{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:16px;background:conic-gradient(from 210deg,#f59e0b,#ef476f,#a855f7,#5f32b7,#f59e0b);display:grid;place-items:center;box-shadow:0 8px 20px rgba(99,34,120,.22)}
+.logo::before{content:"";width:23px;height:23px;clip-path:polygon(50% 0,88% 26%,100% 62%,73% 100%,27% 100%,0 62%,12% 26%);background:rgba(255,255,255,.8);box-shadow:inset 0 0 0 2px rgba(255,255,255,.55)}
+.titlebox h1{margin:0;font-size:28px;letter-spacing:.03em}.titlebox h1 span{color:var(--primary-2)}.titlebox p{margin:2px 0 0;color:var(--muted)}
+.statusline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{background:#ffffffb9;border:1px solid #efd9f0;color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}.pill.online{color:#0c8d5c}.pill.offline{color:#b54968}
+main{height:100%;padding:0 18px 18px;overflow:hidden}
+.view{height:100%;display:grid;gap:14px;overflow:hidden}
+.panel{background:linear-gradient(180deg,#fffdf9,#fff8f2);border:1px solid rgba(191,157,198,.55);box-shadow:0 12px 26px var(--shadow);border-radius:24px;min-height:0}
+#home{place-items:center}.home-card{width:min(980px,100%);height:min(100%,640px);padding:22px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px;overflow:hidden}
+.hero{background:linear-gradient(160deg,#f8f0ff,#fff4de);border-radius:22px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;position:relative;overflow:hidden}
+.hero h2{margin:0;font-size:38px;line-height:1.02}.hero p{margin:0;color:var(--muted);max-width:46ch}.hero ul{margin:0;padding-left:18px;color:var(--ink);display:grid;gap:8px}
+.hero-art{position:absolute;right:-12px;bottom:-12px;width:260px;height:220px;opacity:.95}
+.gem-burst{position:absolute;inset:0;pointer-events:none}
+.formbox{padding:16px;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;min-height:0}.tabs,.mode-switch,.inline{display:flex;gap:8px;flex-wrap:wrap}.field{display:grid;gap:6px}.field label{font-size:13px;color:var(--muted);font-weight:700}
+.home-form{display:grid;gap:12px;align-content:start}.compact-help{font-size:13px;color:var(--muted);margin-top:auto}
+.roombar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 16px;background:#ffffffb3;border:1px solid #edd6ee;border-radius:20px;margin-bottom:12px}.roominfo{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.roomcode{font:800 20px/1 ui-monospace,monospace;letter-spacing:.08em;background:#fff;border:1px dashed #dab4df;padding:6px 10px;border-radius:14px}
+#setupView,#playView{display:grid;gap:12px;height:100%;overflow:hidden}
+#setupView{grid-template-columns:minmax(540px,1fr) 360px}
+#playView{grid-template-columns:minmax(600px,1fr) 340px}
+.boardPanel,.sidePanel{display:grid;grid-template-rows:auto 1fr auto;min-height:0;padding:14px}
+.boardPanel .toprow,.sidePanel .toprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.toprow h2{margin:0;font-size:20px}
+.boardWrap{display:grid;place-items:center;min-height:0;position:relative}.boardBox{width:min(100%,min(77vh,860px));aspect-ratio:1;max-height:100%;background:radial-gradient(circle at 50% 18%,#47225a,#2d183a 56%,#23112d);border-radius:28px;padding:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 16px 26px rgba(68,32,90,.28)}
+svg.grid{width:100%;height:100%;display:block}
+.legend{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:10px;font-size:13px;color:var(--muted)}
+.gemGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+.gemBtn{display:flex;align-items:center;gap:10px;text-align:left;min-height:56px;padding:8px 10px;background:#fff}.gemBtn.selected{box-shadow:0 0 0 3px rgba(168,85,247,.28),0 8px 18px var(--shadow)}.gemChip{width:18px;height:18px;border-radius:8px;transform:rotate(45deg);box-shadow:0 0 0 2px rgba(255,255,255,.7) inset,0 5px 8px rgba(0,0,0,.18)}
+.sideContent{display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;min-height:0}.compactCard{background:linear-gradient(180deg,#fff,#fbf4ff);border:1px solid #edd7ef;border-radius:18px;padding:12px}.setupHint{font-size:13px;color:var(--muted)}
+.previewLine{display:flex;align-items:center;justify-content:space-between;gap:10px}.previewBadge{padding:8px 10px;border-radius:14px;background:#fff}.previewBadge.ok{background:#e7fff4;color:#0b8d58}.previewBadge.bad{background:#fff0f4;color:#ca3c62}
+.controls{display:grid;gap:10px}.controlRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.spinRow{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.footerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.boardOverlay{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;z-index:4}
+.notice{background:rgba(255,255,255,.94);color:var(--ink);padding:11px 14px;border-radius:16px;box-shadow:0 10px 18px var(--shadow);font-weight:800;max-width:min(84vw,520px);text-align:center}.notice.win{background:linear-gradient(135deg,#fff4c7,#ffd479)}.notice.hit{background:linear-gradient(135deg,#f9e2ff,#f2ccff)}.notice.alert{background:linear-gradient(135deg,#ffe4eb,#ffccd6)}
+.sidePanel{padding:12px}.scoreStack{display:grid;gap:10px}.scoreCard{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:linear-gradient(180deg,#fff,#fff4fb);border:1px solid #eed4ef;border-radius:18px;padding:12px}.scoreCard strong{font-size:20px}.scoreCard .clock{font:800 18px/1 ui-monospace,monospace}.clock.live{color:var(--primary-2)}.clock.over{color:var(--alert)}
+.actionPanel{display:grid;gap:10px}.actionModes{display:grid;grid-template-columns:1fr 1fr;gap:8px}.coords{display:flex;gap:8px;align-items:center}.coords span{font-weight:900;font-size:20px}.coords input{width:100%;text-align:center;font:800 20px/1.1 ui-monospace,monospace}.bigAction{min-height:52px;font-size:16px}
+.actionHint{font-size:13px;color:var(--muted);min-height:32px}.infoButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.completeList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.completeItem{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #edd7ef;border-radius:16px;padding:8px 10px;font-size:13px}.completeItem.done{box-shadow:inset 0 0 0 2px rgba(16,185,129,.24)}
+.completeItem .gemChip{width:15px;height:15px}
+.turnPill{padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,#f9e9ff,#efd1ff);font-weight:800}.turnPill.wait{background:linear-gradient(135deg,#fff3c9,#ffe39c)}.turnPill.alert{background:linear-gradient(135deg,#ffe2eb,#ffc1d1)}
+.modalWrap{position:fixed;inset:0;background:rgba(63,27,68,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:15}.modalWrap.open{display:flex}.modal{width:min(96vw,1020px);height:min(86vh,760px);background:linear-gradient(180deg,#fffdf9,#fff8f2);border:1px solid #ead0eb;border-radius:26px;box-shadow:0 18px 40px rgba(71,38,87,.22);display:grid;grid-template-rows:auto 1fr;overflow:hidden}.modalHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #f0dff0}.modalBody{padding:14px;display:grid;grid-template-columns:minmax(340px,1fr) 320px;gap:12px;min-height:0}
+.logList{margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px;color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(24px);background:#4a2454;color:white;padding:10px 14px;border-radius:14px;opacity:0;transition:.25s;pointer-events:none;z-index:20;box-shadow:0 14px 22px rgba(52,21,62,.26)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #ecd7ee;font-weight:800;font-size:13px}
+@keyframes radarGlow{from{box-shadow:0 0 0 0 rgba(245,158,11,.2),0 0 0 0 rgba(245,158,11,.15)}to{box-shadow:0 0 0 6px rgba(245,158,11,.08),0 0 24px rgba(245,158,11,.35)}}
+@keyframes pulseCell{0%{transform:scale(1);opacity:.95}50%{transform:scale(1.22);opacity:1}100%{transform:scale(1);opacity:.95}}
+@keyframes popBanner{0%{transform:translateY(-10px);opacity:0}10%,90%{transform:translateY(0);opacity:1}100%{transform:translateY(-8px);opacity:0}}
+.pulse{animation:pulseCell 1s infinite}
+.board-note{font-size:13px;color:var(--muted)}
+@media (max-width:1120px){#setupView{grid-template-columns:1fr 320px}#playView{grid-template-columns:1fr 310px}.boardBox{width:min(100%,68vh)}}
+@media (max-width:920px){header{padding:12px 14px 8px}.titlebox h1{font-size:24px}.titlebox p{font-size:13px}main{padding:0 12px 12px}.home-card{grid-template-columns:1fr}.hero{min-height:200px}.hero h2{font-size:32px}#setupView,#playView{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.boardPanel,.sidePanel{padding:12px}.boardBox{width:min(100%,56vh)}.sideContent{grid-template-rows:auto auto auto 1fr auto}.modalBody{grid-template-columns:1fr;grid-template-rows:minmax(280px,1fr) auto}}
+@media (max-width:580px){.gemGrid{grid-template-columns:1fr 1fr}.infoButtons{grid-template-columns:1fr 1fr 1fr}.completeList{grid-template-columns:1fr 1fr}.boardBox{width:min(100%,48vh)}.hero h2{font-size:28px}.roombar{padding:10px 12px}.scoreCard strong{font-size:18px}.coords input{font-size:18px}}
+/* ========== MINA SUBTERRÁNEA · REVISIÓN VISUAL ========== */
+:root{
+  --bg1:#0a1413;--bg2:#132321;--bg3:#211d18;
+  --panel:#1c2a25;--panel2:#2a3a32;--line:#4b6559;--line-strong:#a78b63;
+  --ink:#f6f0dc;--muted:#a8baaa;--shadow:rgba(0,0,0,.35);
+  --board:#14221d;--grid:#647e6e;--axis:#c9ad79;--node:#e0c999;
+  --primary:#e2ac62;--primary-2:#facb81;--gold:#ffcf7e;--teal:#71efb6;
+  --alert:#ff867a;--soft-alert:#57352e;--soft:#2b3d33;--soft2:#433526;
+}
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(150,118,67,.16),transparent 45%),
+    radial-gradient(ellipse at 0% 80%,rgba(27,96,79,.19),transparent 42%),
+    repeating-linear-gradient(115deg,transparent 0 82px,rgba(255,255,255,.012) 83px 84px,transparent 86px 180px),
+    linear-gradient(150deg,#0b1714,#17251f 55%,#101b17);
+}
+#shell{grid-template-rows:62px minmax(0,1fr)}
+header{padding:8px 17px;border-bottom:1px solid rgba(206,174,117,.17);background:rgba(10,20,17,.45)}
+.brand{gap:10px}.logo{width:39px;height:39px;border-radius:12px;background:linear-gradient(145deg,#b77439,#6a4639 44%,#274f42);border:1px solid #d7af65a0;box-shadow:0 0 18px #e1a34a20,inset 0 0 20px #0004}
+.logo::before{width:23px;height:27px;clip-path:polygon(50% 0,88% 24%,96% 65%,50% 100%,5% 65%,12% 24%);background:linear-gradient(125deg,#fcffc9 0%,#65deb8 25%,#137f6b 45%,#63dfaf 70%,#f4fbd4 100%);box-shadow:inset 0 0 0 1px #fff7}
+.titlebox h1{font-size:24px;letter-spacing:.15em;font-weight:900}.titlebox h1 span{color:#efbc77}.titlebox p{font-size:11px;letter-spacing:.065em;color:#cbbba0;margin:0}
+.provisional{color:#8d9b86}
+.pill{background:#1f312a;border:1px solid #445a48;color:#c6bca0;padding:6px 10px;font-size:11px}.pill.online{color:#84edb4;border-color:#377c60}.pill.offline{color:#d5aa8d}
+main{padding:9px 15px 12px;min-height:0}.view{gap:8px;min-height:0}
+.panel{background:linear-gradient(160deg,rgba(36,52,44,.96),rgba(20,32,28,.98));border:1px solid rgba(148,164,129,.28);border-radius:18px;box-shadow:0 15px 28px #0003,inset 0 1px 0 #f4e7bf0b}
+button{border:1px solid #6475656b;background:linear-gradient(180deg,#394c40,#2b3c33);color:#f7ecd2;border-radius:10px;box-shadow:inset 0 1px #ffffff12,0 5px 9px #0003;padding:8px 10px;min-height:36px;transition:filter .18s,transform .15s}
+button:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}
+button.primary,button.mode.active,button.toggle.active{color:#281e12;background:linear-gradient(165deg,#fbe0a5,#d69b4e 67%,#ad7138);border-color:#ffdb9b;box-shadow:inset 0 1px #fff9,0 6px 18px #ca8e3940}
+button.secondary{color:#123828;background:linear-gradient(165deg,#b2f6bd,#4bb88a);border-color:#a6e9c6}
+button.ghost{background:linear-gradient(180deg,#35483f,#27382f);border-color:#71816b6b;color:#e9e4cc}
+button.radar-ready{background:linear-gradient(135deg,#b3ffe0,#6ee7b7)!important;color:#104634!important;border-color:#c5fff0!important;animation:radarGlow 1.1s infinite alternate}
+@keyframes radarGlow{from{box-shadow:0 0 0 0 #61ffaf28,inset 0 1px #fff9,0 0 13px #6cf3ad4f}to{box-shadow:0 0 0 5px #61ffaf15,inset 0 1px #fff9,0 0 33px #6cf3adaa}}
+input,select{border:1px solid #617565;background:#13251e;color:#f4edd9;min-height:38px;border-radius:9px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid #eac185;outline-offset:2px}
+.muted,.field label,.board-note{color:#a9bbab}.small{font-size:12px}
+.badge{background:#314439;border:1px solid #5e755e;color:#e5e1c7;padding:6px 10px;font-size:11px}
+.roombar{margin:0;min-height:46px;padding:5px 12px;border-radius:12px;background:#1d3028;border-color:#4a6557;box-shadow:inset 0 1px #ffffff0c}
+.roomcode{background:#0e231b;border:1px dashed #d4b57a;color:#ffe2a5;border-radius:8px;font-size:17px;padding:4px 9px}
+#app{grid-template-rows:auto minmax(0,1fr)}
+#setupView,#playView{height:100%;min-height:0;gap:9px}
+#setupView{grid-template-columns:minmax(0,1fr) 335px}
+#playView{grid-template-columns:minmax(0,1fr) 335px}
+.boardPanel,.sidePanel{padding:10px 11px}
+.boardPanel{grid-template-rows:34px minmax(0,1fr) 24px}
+.boardPanel .toprow,.sidePanel .toprow{margin:0;min-height:30px}
+.toprow h2{font-size:16px;letter-spacing:.04em;color:#f6e8c7}
+.boardWrap{container-type:size;overflow:hidden;min-height:0;min-width:0;position:relative}
+.boardBox{width:min(100cqw,100cqh);height:min(100cqw,100cqh);aspect-ratio:1;max-height:unset;max-width:unset;padding:5px;border-radius:18px;background:linear-gradient(130deg,#34423a,#10221c 60%,#141e1b);border:2px solid #5e6957;box-shadow:inset 0 0 0 3px #18221c,inset 0 0 25px #0008,0 13px 28px #0007;position:relative}
+.boardBox::before{content:'';position:absolute;inset:3px;border:1px solid #cead7040;border-radius:13px;pointer-events:none;z-index:2}
+.boardBox::after{content:'';position:absolute;inset:3px;border-radius:13px;pointer-events:none;background:radial-gradient(ellipse at 16% 2%,rgba(243,224,151,.09),transparent 44%);mix-blend-mode:screen}
+svg.grid{display:block;width:100%;height:100%;cursor:crosshair}#enemyBoard{cursor:default;pointer-events:none}
+.legend{padding:3px 3px 0;font-size:11px;min-height:24px;gap:8px}
+.turnPill{background:linear-gradient(110deg,#4a593f,#263d2f);border:1px solid #a99a6370;color:#f9d58d;padding:6px 10px;font-size:12px}
+.turnPill.wait{background:#66512f;color:#ffe0a6}.turnPill.alert{background:#5b3431;color:#ffd7c7}
+.scoreStack{grid-template-columns:1fr 1fr;gap:7px}
+.scoreCard{padding:8px 10px;border-radius:12px;background:linear-gradient(150deg,#304539,#1f332a);border:1px solid #69826960;min-height:88px;grid-template-columns:1fr;gap:2px}
+.scoreCard strong{font-size:19px;letter-spacing:.02em;color:#f5e5c0}.scoreCard .clock{font-size:16px;color:#a6e3ba}.scoreCard .clock.live{color:#ffce83}.scoreCard .clock.over{color:#ff8d7c}
+.scoreCard .small{font-size:11px}
+.sidePanel{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.sidePanel>.toprow{flex:0 0 auto}
+.compactCard{background:linear-gradient(155deg,#273b32,#1a2c25);border-color:#526b58;border-radius:12px;padding:10px}
+.actionPanel{gap:7px;flex:0 0 auto}
+.actionModes{gap:7px}
+.coords input{font-size:21px;font-weight:900;color:#ffda91;background:#0e1c18;padding:3px 5px;min-height:43px}
+.bigAction{min-height:44px;font-size:14px}
+.actionHint{font-size:11px;line-height:1.3;min-height:14px}
+#playView .sidePanel>.compactCard:nth-of-type(2){padding:9px 10px;min-height:0}
+.completeList{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.completeItem{flex-direction:column;gap:4px;padding:5px 3px;border-radius:9px;background:#1a3027;border:1px solid #53715c;min-height:41px;text-align:center;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.completeItem.done{box-shadow:inset 0 0 0 1px #8cf8be70;background:#315c43}
+.completeItem .gemChip{width:11px;height:11px;flex:none}
+.gemChip{border-radius:2px;box-shadow:inset 1px 1px #fff9,inset -3px -3px #0008,0 1px 8px currentColor}
+.infoButtons{gap:5px;margin-top:auto}.infoButtons button{font-size:11px;min-height:32px;padding:5px 4px}
+.boardOverlay{top:15px;width:max-content;max-width:98%}
+.notice{font-size:12px;padding:9px 12px;border:1px solid #bb9d62;box-shadow:0 5px 14px #0007;background:#e8dec1;color:#302a1d}
+.notice.hit{background:#d3fbe5;color:#12503b}.notice.win{background:#ffdf9c;color:#5b3211}.notice.alert{background:#ffd1c6;color:#67342d}
+.gemGrid{grid-template-columns:1fr 1fr;gap:6px}
+.gemBtn{min-height:45px;padding:6px 8px;background:linear-gradient(#34483c,#24352c);color:#f3ead3;border:1px solid #526b5b;border-radius:9px;gap:8px}
+.gemBtn.selected{box-shadow:0 0 0 2px #f5c16f,0 0 15px #f4c36a30;background:#45543d}
+.gemBtn .small{font-size:10px}.gemBtn strong{font-size:12px}
+.setupHint{font-size:11px;padding:9px}.sideContent{grid-template-rows:auto auto 1fr auto;gap:8px;min-height:0}
+.previewLine{gap:6px}.previewBadge{background:#405046;color:#d9d3bd;padding:6px;font-size:11px;border-radius:8px}
+.previewBadge.ok{background:#1c533d;color:#a7ffc7}.previewBadge.bad{background:#642b2c;color:#ffd0c7}
+.footerActions{gap:7px}.footerActions button{min-height:36px;font-size:12px}
+#setupHint{background:#1e2e27}
+#home{place-items:center}
+.home-card{width:min(1120px,100%);height:min(100%,680px);padding:10px;grid-template-columns:minmax(0,1.25fr) minmax(315px,.75fr);gap:10px;border-radius:24px;box-shadow:0 20px 65px #0005}
+.hero{border-radius:16px;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 74% 80%,#245b4d,#123429 29%,transparent 51%),linear-gradient(140deg,#1b312a,#17231e 64%,#24241d);padding:31px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:14px}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(210,173,107,.12),transparent 43%),repeating-linear-gradient(135deg,transparent 0 71px,rgba(254,238,196,.015) 72px 73px);pointer-events:none}
+.hero>div:not(.cave-art),.hero>ul{position:relative;z-index:3}
+.hero-eyebrow{font-size:10px;font-weight:900;letter-spacing:.17em;color:#f4d49b;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:#88f6b3;box-shadow:0 0 12px #94ffd3;animation:pulseDot 1.8s infinite}
+@keyframes pulseDot{50%{opacity:.35;transform:scale(.7)}}
+.hero h2{font-size:clamp(38px,4.4vw,60px);line-height:1.01;letter-spacing:-.045em;text-wrap:balance;max-width:560px;color:#fff0cd;text-shadow:0 3px 15px #0008}
+.hero h2 em{font-style:normal;color:#8de8b9}
+.hero p{font-size:14px;line-height:1.62;max-width:510px;color:#c4d2bd}
+.hero p.story{margin-top:15px}.hero p.coda{margin-top:7px;font-size:13px;color:#dfc495;font-weight:650}
+.hero ul{display:flex;gap:9px;flex-wrap:wrap;margin-top:auto;padding:0;list-style:none;max-width:490px}
+.hero li{border:1px solid #79907366;padding:8px 10px;background:#182d27cc;border-radius:10px;font-size:11px;color:#cad5bd}
+.cave-art{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.cave-glow{position:absolute;bottom:-56px;right:-55px;width:430px;height:410px;background:radial-gradient(ellipse,#39bb8660 0%,#13a57c27 26%,transparent 68%);filter:blur(8px)}
+.cave-ceiling{position:absolute;right:0;top:0;width:100%;height:100px;background:linear-gradient(#060e0cb7,transparent);clip-path:polygon(0 0,100% 0,100% 65%,97% 31%,92% 89%,85% 47%,77% 76%,73% 29%,66% 55%,58% 36%,48% 66%,0 20%)}
+.cave-ground{position:absolute;bottom:0;left:0;right:0;height:115px;background:linear-gradient(#18231cd4,#0b1511);clip-path:polygon(0 53%,14% 35%,26% 63%,40% 30%,58% 45%,73% 24%,86% 34%,100% 17%,100% 100%,0 100%)}
+.rock{position:absolute;bottom:14px;right:0;background:linear-gradient(130deg,#5b6250,#263b31 45%,#12241d);clip-path:polygon(50% 0,88% 22%,100% 66%,77% 100%,13% 93%,0 53%,18% 19%);box-shadow:inset 2px 2px 10px #e0c59660}
+.rock-a{width:220px;height:175px;right:18px;bottom:19px}.rock-b{width:145px;height:98px;right:166px;bottom:8px;opacity:.8}.rock-c{width:98px;height:75px;right:-5px;bottom:108px}.rock-d{width:72px;height:51px;right:268px;bottom:13px;opacity:.8}
+.hero-crystal{position:absolute;bottom:100px;right:119px;width:84px;height:135px;clip-path:polygon(50% 0,95% 25%,100% 69%,49% 100%,0 69%,4% 25%);background:linear-gradient(100deg,#093e2b 0%,#30a478 17%,#a2ffcd 33%,#40b88c 49%,#117459 75%,#072d29 100%);filter:drop-shadow(0 0 14px #5cf6b5);animation:crystalBreath 3.8s ease-in-out infinite alternate}
+.hero-crystal::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,#d8ffe85e 36%,transparent 51%);clip-path:polygon(50% 0,90% 25%,51% 100%,8% 25%)}
+.hero-crystal-b{width:62px;height:97px;right:182px;bottom:101px;transform:rotate(-18deg);background:linear-gradient(120deg,#493019,#ffe0a1,#ec983f,#693612);animation-delay:-1s;filter:drop-shadow(0 0 12px #ffce7a)}
+.hero-crystal-c{width:50px;height:72px;right:80px;bottom:98px;transform:rotate(17deg);background:linear-gradient(120deg,#183759,#92e3e4,#286e9f,#12263b);animation-delay:-2s;filter:drop-shadow(0 0 11px #70caef)}
+@keyframes crystalBreath{to{filter:drop-shadow(0 0 27px #8cffc9);opacity:.84}}
+.formbox{padding:20px 17px;gap:12px;grid-template-rows:auto auto 1fr auto}
+.formbox .field label{font-size:12px;text-transform:uppercase;letter-spacing:.09em}
+.formbox input{padding:9px 12px}
+.tabs button,.mode-switch button{flex:1}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.compact-help{font-size:11px;line-height:1.5;color:#95ac9a}
+.home-form{gap:12px}
+.modalWrap{background:#06120fe0;backdrop-filter:blur(6px)}
+.modal{background:linear-gradient(#24382e,#17271f);border:1px solid #718b6b;border-radius:18px}
+.modalHeader{border-color:#455a49}.modalBody{overflow:hidden;gap:8px}.logList{color:#e9dfc6}.logList li{margin:0 0 8px}
+.toast{background:#f0d6a1;color:#2b241a;box-shadow:0 10px 23px #000a}
+#myBoardBtn.mine-alert{animation:radarGlow .45s 3}
+/* Drill strike animation */
+@keyframes impactSpread{0%{opacity:1;transform:scale(.15)}85%{opacity:.9}100%{opacity:0;transform:scale(2.1)}}
+.impact-group .impact-ring{transform-origin:center;animation:impactSpread .8s ease-out both}
+@keyframes grit{0%{opacity:0;transform:scale(.35)}35%{opacity:1}100%{opacity:0;transform:translateY(-7px) scale(1.3)}}
+.dust-bit{animation:grit .85s ease-out both}
+@keyframes radarNodePulse{0%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.35)}100%{opacity:.35;transform:scale(.8)}}
+.radar-node{transform-origin:center;transform-box:fill-box;animation:radarNodePulse .75s ease-in-out infinite}
+/* cinematic reveal */
+.discovery{position:fixed;inset:0;z-index:60;display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s;overflow:hidden;pointer-events:none;--reveal-color:#9ee4ac}
+.discovery.active{opacity:1;visibility:visible}
+.discovery-atmosphere{position:absolute;inset:0;background:radial-gradient(circle at 50% 53%,rgba(15,35,25,.52) 0,rgba(1,9,8,.93) 48%,#020909f5 100%);backdrop-filter:blur(7px)}
+.reveal-glow{position:absolute;width:650px;height:650px;max-width:98vw;max-height:98vw;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--reveal-color) 65%,transparent) 0%,color-mix(in srgb,var(--reveal-color) 20%,transparent) 28%,transparent 70%);filter:blur(35px);animation:glowBurst 3.5s ease-out both}
+@keyframes glowBurst{0%{opacity:0;transform:scale(.18)}19%{opacity:.94}60%{opacity:.58}100%{opacity:.1;transform:scale(1.5)}}
+.reveal-ray{position:absolute;top:50%;left:50%;width:8px;height:145vh;background:linear-gradient(to bottom,transparent,var(--reveal-color),transparent);transform-origin:center;filter:blur(5px);opacity:.26}
+.ray1{transform:translate(-50%,-50%) rotate(30deg)}.ray2{transform:translate(-50%,-50%) rotate(90deg)}.ray3{transform:translate(-50%,-50%) rotate(150deg)}
+.discovery.active .reveal-ray{animation:rayPulse 3.3s ease-out both}@keyframes rayPulse{0%{opacity:0;filter:blur(19px)}27%{opacity:.9;filter:blur(4px)}100%{opacity:0;filter:blur(15px)}}
+.reveal-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:20px;width:min(95vw,750px);transform:translateY(18px);animation:revealRise 3.4s ease-out both}
+@keyframes revealRise{0%{opacity:0;transform:translateY(35px) scale(.9)}15%{opacity:1;transform:translateY(0) scale(1.02)}65%{opacity:1;transform:translateY(0)}100%{opacity:.96;transform:translateY(-9px)}}
+.reveal-eyebrow{font:900 12px/1.4 system-ui;letter-spacing:.3em;color:#f5dba6;text-shadow:0 0 16px #ffd37b65}
+.reveal-jewel{width:min(45vh,350px);height:min(45vh,350px);display:grid;place-items:center;filter:drop-shadow(0 0 45px var(--reveal-color)) drop-shadow(0 15px 24px #0008);animation:jewelSpin 3.25s cubic-bezier(.18,.8,.2,1) both}
+.reveal-jewel svg{width:100%;height:100%;max-height:100%;overflow:visible}
+@keyframes jewelSpin{0%{opacity:0;transform:scale(.08) rotate(-35deg)}20%{opacity:1;transform:scale(1.12) rotate(8deg)}36%{transform:scale(.98) rotate(-4deg)}65%{transform:scale(1.04) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.reveal-content h2{margin:0;font-size:clamp(26px,4.4vw,58px);font-weight:1000;line-height:1.02;letter-spacing:.06em;color:#fff5d3;text-shadow:0 4px 25px #e4b56a77,0 2px 5px #000}
+.reveal-content p{color:#f6e8cf;margin:0;font-size:clamp(14px,2.4vw,19px)}
+.reveal-meta{margin-top:11px;padding:9px 17px;border:1px solid #d9bf8b;background:#193528b8;border-radius:50px;color:#ffe3a5;font:850 12px/1.2 system-ui;letter-spacing:.17em}
+.reveal-particles{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.reveal-particles i{position:absolute;width:var(--sz);height:var(--sz);border-radius:50%;background:#fdf0b5;box-shadow:0 0 12px var(--reveal-color),0 0 24px var(--reveal-color);animation:partScatter 1.5s ease-out var(--delay) both}
+@keyframes partScatter{0%{opacity:0;transform:translate(0,0) scale(.1)}19%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.25)}}
+.discovery.rival .reveal-content h2{color:#ffd1b5}.discovery.rival .reveal-eyebrow{color:#ffae94}
+.dig-fx{position:fixed;z-index:28;right:25%;top:26%;pointer-events:none;display:flex;flex-direction:column;align-items:center;opacity:0;visibility:hidden;transform:rotate(-28deg) scale(.4)}
+.dig-fx.active{opacity:1;visibility:visible;animation:toolSwing .9s ease-out both}
+.dig-tool{font-size:68px;text-shadow:0 7px 9px #0008;transform-origin:bottom left}
+.dig-dust{width:54px;height:22px;border-radius:50%;background:#9b9d8177;filter:blur(9px);margin-top:-11px}
+.dig-label{font:900 11px/1.4 system-ui;letter-spacing:.18em;color:#f8d78e;padding:5px 10px;border-radius:14px;background:#102a21d9}
+@keyframes toolSwing{0%{opacity:0;transform:translate(-25px,-40px) rotate(-50deg) scale(.4)}25%{opacity:1;transform:translate(-15px,-5px) rotate(12deg) scale(1.05)}48%{transform:translate(0,4px) rotate(23deg) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translate(10px,20px) rotate(-8deg)}}
+@media(max-width:1150px){#playView{grid-template-columns:minmax(0,1fr) 310px}#setupView{grid-template-columns:minmax(0,1fr) 310px}.hero h2{font-size:44px}.hero-art{display:none}}
+@media(max-width:800px){
+ #shell{grid-template-rows:55px minmax(0,1fr)}header{padding:5px 9px}.titlebox h1{font-size:18px}.titlebox p{font-size:10px}.logo{width:34px;height:34px}
+ #modeTop{display:none}.pill{font-size:10px;padding:5px}
+ main{padding:5px 7px 7px}.view{gap:6px}
+ .roombar{min-height:42px;padding:4px 7px}.roomcode{font-size:13px}.roombar button{font-size:10px;padding:4px 6px;min-height:27px}.roominfo{gap:5px}.roombar .badge{font-size:9px;padding:5px}
+ #setupView,#playView{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px}
+ .boardPanel{grid-template-rows:25px minmax(0,1fr) 17px;padding:5px 7px;border-radius:12px}
+ .boardPanel .toprow h2{font-size:14px}.turnPill{font-size:10px;padding:4px 7px}.legend{font-size:10px}.board-note{font-size:10px}
+ .sidePanel{padding:7px;gap:5px;border-radius:12px}.sidePanel>.toprow{min-height:20px}.sidePanel>.toprow h2{display:none}
+ .scoreStack{gap:5px}.scoreCard{min-height:53px;padding:5px 8px;grid-template-columns:1fr auto}.scoreCard strong{font-size:16px}.scoreCard .clock{font-size:14px}.scoreCard .small{font-size:10px}
+ .actionPanel{padding:7px;gap:5px}.actionModes button{min-height:32px;padding:4px;font-size:12px}.coords input{min-height:34px;font-size:16px}.bigAction{min-height:36px;font-size:12px}.actionHint{display:none}
+ #playView .sidePanel>.compactCard:nth-of-type(2){padding:4px 6px}.completeList{display:flex;flex-wrap:nowrap;gap:3px}.completeItem{flex:1;min-width:0;min-height:25px;padding:3px 1px;font-size:0;flex-direction:row;justify-content:center}.completeItem .gemChip{width:11px;height:11px}
+ .completeItem span:last-child{display:none}.completeList+.muted{display:none}
+ .infoButtons{gap:4px}.infoButtons button{min-height:28px;padding:4px 2px;font-size:10px}
+ #setupView .sidePanel .toprow h2{display:block;font-size:13px}.gemGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}.gemBtn{min-height:36px;padding:3px 4px;gap:3px;flex-direction:column;text-align:center}.gemBtn strong{font-size:10px}.gemBtn .small{display:none}.gemChip{width:13px;height:13px}.sideContent{gap:4px}.sideContent>.compactCard{padding:5px}.sideContent>.compactCard.controls{display:grid;grid-template-columns:1fr 1fr;gap:3px}.previewLine{grid-column:1/-1}.spinRow{grid-column:1/-1}.setupHint{display:none}.sideContent>.footerActions button{min-height:31px}
+ #home .home-card{width:100%;height:100%;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;padding:7px;gap:7px}.hero{padding:15px}.hero h2{font-size:30px}.hero p{font-size:12px;line-height:1.38}.hero p.story{margin-top:7px}.hero p.coda{margin-top:4px}.hero ul{gap:4px;margin-top:auto}.hero li{padding:5px 6px;font-size:9px}.hero-eyebrow{font-size:9px;margin-bottom:7px}.cave-art{opacity:.7}.formbox{padding:9px;gap:7px}.formbox .field label{font-size:10px}.formbox input{min-height:33px}.compact-help{display:none}.home-form{gap:5px}.home-form button{min-height:33px}
+ .modalBody{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;overflow:auto}.modal{height:90vh}.reveal-jewel{width:min(39vh,260px);height:min(39vh,260px)}
+ .dig-fx{right:13%;top:25%}
+}
+@media(max-height:710px) and (min-width:801px){
+ #shell{grid-template-rows:50px minmax(0,1fr)}header{padding:5px 12px}.titlebox h1{font-size:20px}
+ main{padding:5px 8px}.roombar{min-height:38px}.sidePanel{gap:5px}.scoreCard{min-height:70px;padding:5px}.actionPanel{gap:4px;padding:7px}.actionHint{display:none}.completeItem{min-height:32px;padding:3px}.completeList{gap:3px}.infoButtons button{min-height:29px}
+}
+@media(max-height:520px){.provisional,#modeTop{display:none}.boardPanel{padding:4px}.sidePanel{gap:4px}.scoreCard{min-height:46px}.legend{display:none}.boardPanel{grid-template-rows:24px minmax(0,1fr)}.completeList{display:flex}.completeItem{font-size:0;min-height:22px}.completeItem span:last-child{display:none}.hero ul{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.discovery{transition:none}}
+
+
+/* v7 · portada, navegación, preparación y cuenta regresiva */
+.phase2tag{background:#79cba4;color:#13281e;font:900 10px system-ui;letter-spacing:.08em;border-radius:7px;padding:4px 7px}
+#modeTop{display:none}.homeNav{min-height:36px;padding:7px 13px;border:1px solid #6a806a;border-radius:11px;font-size:12px}
+.homeGems{position:relative;z-index:4;width:100%;margin-top:3px;padding:10px 11px;background:rgba(9,27,21,.78);border:1px solid #526957;border-radius:13px;backdrop-filter:blur(2px)}
+.catalogTitle,.selectionLabel{font-size:10px;letter-spacing:.14em;font-weight:900;color:#f1cd8c}
+.catalogGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+.catalogGem{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;border:1px solid #526957;background:#1b3028cc;border-radius:9px;padding:4px 3px;font-size:10px;color:#f1ead6}
+.catalogGem svg{width:100%;height:40px;overflow:visible}.catalogGem span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hero{gap:10px}.hero h2{font-size:clamp(32px,3.3vw,46px);max-width:650px}.hero p.story{margin-top:10px;font-size:13px;line-height:1.48}
+.hero ul{margin-top:5px}.hero li{padding:6px 8px}
+.formbox{display:flex;flex-direction:column;gap:10px}.formbox .selectionLabel{color:#b8d3b8;margin:4px 0 0}
+.tabs{padding:3px;border:1px solid #688574;background:#10281e;border-radius:12px;gap:4px}
+.tabs button{box-shadow:none;border:0;background:transparent;color:#d0dccc;border-radius:9px}
+.tabs button.active{background:#ddba79!important;color:#231c15!important}
+.mode-switch{background:#10231d;border-radius:12px;padding:4px;border:1px solid #455d4b}
+.mode-switch button{background:#283e32;border:1px solid transparent;border-radius:10px;box-shadow:none;color:#cbd2c5;display:flex;gap:6px;align-items:center;justify-content:center;font-size:12px}
+.mode-switch button.active{background:#254d3c!important;border-color:#8ad1aa!important;color:#c4f5d8!important}
+.mode-switch svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#homeCreate .primary,#homeJoin .primary{background:linear-gradient(140deg,#f8dca5,#c59a5c)!important;color:#251b11!important;border:1px solid #ffdea7;min-height:47px;font-size:15px;box-shadow:0 4px 20px #deb86f33}
+.resumePanel{background:#243c30;border:1px solid #8fbc92;border-radius:13px;padding:11px;display:grid;gap:8px}
+#home:has(#resumePanel:not(.hidden)) .tabs,#home:has(#resumePanel:not(.hidden)) .home-form,#home:has(#resumePanel:not(.hidden)) .selectionLabel:not(.resumePanel .selectionLabel){display:none}
+#resumeBtn{background:linear-gradient(130deg,#c9f9d6,#84cb9b)!important;color:#1b3525!important}
+.setupPhaseTitle{font-size:19px!important;letter-spacing:.01em!important}.setupPhaseTitle span{background:#d9ad65;color:#231b12;border-radius:7px;padding:4px 7px;font:900 10px system-ui;letter-spacing:.09em}
+#setupView .sidePanel{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#setupView .sideContent{display:flex;flex-direction:column;gap:7px;flex:1 1 auto;min-height:0;overflow:hidden}
+#setupView .gemGrid{flex:0 0 auto}.gemBtn{position:relative}.gemBtn.buried{background:linear-gradient(150deg,#255f43,#274c39);border-color:#70d3a0}
+.gemBtn.buried::after{content:'✓';position:absolute;right:7px;top:3px;color:#a6ffcd;font-size:12px;font-weight:900}
+.gemBtn.pending{border-style:dashed;border-color:#6f775c}.gemBtn .small{color:#bfcab9}
+#setupView .controls{flex:0 1 auto;min-height:0;gap:7px}.gemPreviewStage{height:78px;border:1px solid #7187736b;border-radius:10px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 50%,#43594b,#14241d);overflow:hidden}
+.gemPreviewStage svg{width:100%;height:100%;display:block}.previewLine .muted{font-size:10px}
+#setupView .setupHint{flex:0 0 auto;min-height:26px;font-size:11px}
+#setupView .setupFooter{display:grid;grid-template-columns:minmax(0,1fr) 75px;gap:7px;flex:0 0 auto;padding-top:9px;border-top:1px solid #6a78587d;box-shadow:0 -8px 15px #13211933;background:#17281f}
+#readyBtn{min-height:47px!important;opacity:1!important;font-weight:900;font-size:15px!important;box-shadow:none;border-radius:11px}
+#readyBtn.readyPending{background:linear-gradient(135deg,#4a564b,#343f37);border:1px solid #889284;color:#d1d5ca}
+#readyBtn.readyActive{background:linear-gradient(140deg,#ffdfa0,#cba45d);border:1px solid #ffeaba;color:#342416;box-shadow:0 0 0 2px #f4d59d25,0 0 22px #efbc754f;animation:readyShine 1.6s ease-in-out infinite alternate}
+#readyBtn.readyDone{background:#2c6749;border:1px solid #91e7b4;color:#bdf9d2}
+@keyframes readyShine{to{box-shadow:0 0 0 4px #f4d59d35,0 0 28px #efbc756e}}
+.boardBuryBtn{position:absolute;z-index:12;min-height:36px;padding:7px 12px;white-space:nowrap;border:1px solid #ffe6ae;border-radius:11px;background:linear-gradient(130deg,#ffe8b7,#dfa95e);color:#332516;box-shadow:0 0 0 3px #ffe0a82b,0 8px 18px #0009;font-size:12px}
+.boardBuryBtn:disabled{opacity:.95;background:#5f4b47;border-color:#c18d88;color:#ffe0d7;cursor:not-allowed}
+.countdownOverlay{position:fixed;inset:0;background:radial-gradient(circle at center,#1b4936ed,#091912f9 70%);backdrop-filter:blur(8px);z-index:90;display:grid;place-items:center;pointer-events:all}
+.countdownContent{text-align:center;position:relative;z-index:2;color:#fff1cf;display:grid;gap:6px;justify-items:center}
+.countdownEyebrow{letter-spacing:.19em;font-size:13px;font-weight:900;color:#a4f9c8}
+.countdownNumber{font-size:clamp(128px,22vmin,250px);font-weight:1000;line-height:1.2;text-shadow:0 0 20px #f2d58e94,0 0 90px #6bd39eaa;animation:countdownBeat .78s ease-out infinite}
+.countdownSubtitle{font-size:clamp(20px,3vw,30px);font-weight:900}
+.countdownHalo{position:absolute;width:75vmin;height:75vmin;border:2px solid #a8eab777;border-radius:50%;box-shadow:0 0 0 35px #6acb9620,0 0 0 90px #79cba709;animation:haloBreath 2s ease-in-out infinite alternate}
+@keyframes countdownBeat{0%{transform:scale(1.2)}70%,100%{transform:scale(1)}}@keyframes haloBreath{to{transform:scale(1.09);opacity:.62}}
+@media(max-height:840px) and (min-width:801px){.home-card{height:min(100%,675px)}.hero{padding:20px}.hero h2{font-size:clamp(31px,3vw,42px)}.hero p.story{font-size:12px;line-height:1.32}.catalogGem svg{height:30px}.homeGems{padding:7px}.catalogGrid{gap:4px}.hero ul{display:none}.gemPreviewStage{height:62px}#setupView .setupHint{display:none}#setupView .gemBtn{min-height:40px}}
+@media(max-width:800px){
+ .homeNav{min-height:31px;padding:5px 8px;font-size:11px}
+ .home-card{overflow:hidden}.hero{min-height:0;gap:6px;padding:11px}.hero h2{font-size:clamp(22px,5.8vw,32px)}.hero p.story{font-size:11px;line-height:1.28;margin-top:5px}.hero-eyebrow{margin-bottom:4px}
+ .homeGems{padding:5px}.catalogTitle{font-size:9px}.catalogGrid{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:3px}.catalogGem{padding:2px 1px;font-size:8px}.catalogGem svg{height:26px}
+ .hero ul{display:none}.cave-art{opacity:.38}.formbox{gap:5px}.formbox .selectionLabel{font-size:9px}.mode-switch button{font-size:11px;min-height:32px;padding:4px}.mode-switch svg{width:14px;height:14px}
+ #setupView .sidePanel>.toprow{display:flex!important}#setupView .sidePanel>.toprow h2{font-size:12px}
+ #setupView .sideContent{gap:4px;overflow:hidden}.gemPreviewStage{height:48px}#setupView .controls{gap:3px}
+ #setupView .gemGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}.gemBtn{min-height:33px;padding:2px 4px}.gemBtn.buried::after{right:1px;top:1px;font-size:9px}
+ #setupView .setupFooter{padding-top:5px;grid-template-columns:minmax(0,1fr) 60px}#readyBtn{min-height:38px!important;font-size:12px!important}
+ #setupView .setupHint{display:none}#setupView .spinRow button{min-height:30px;padding:4px}#setupView .footerActions{display:none}
+ .boardBuryBtn{min-height:30px;font-size:11px;padding:5px 9px}
+}
+@media(max-height:600px){.gemPreviewStage{height:38px}#setupView .setupHint{display:none}.hero h2{font-size:28px}.hero ul{display:none}}
+
+</style>
+</head>
+<body>
+<div id="shell">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="titlebox">
+        <h1>GEMA<span>PLANO</span></h1>
+        <p>Duelo de exploradores mineros</p>
+      </div>
+    </div>
+    <div class="statusline">
+      <button id="homeNavBtn" class="ghost homeNav hidden" type="button">⌂ Inicio</button>
+      <span id="netStatus" class="pill offline">● Conectando…</span>
+    </div>
+  </header>
+  <main>
+    <section id="home" class="view">
+      <div class="home-card panel">
+        <div class="hero">
+          <div>
+            <div class="hero-eyebrow"><span class="pulse-dot"></span> TORNEO DE PROSPECCIÓN · 2 EXPLORADORES</div><h2>Dos exploradores.<br><em>Siete gemas.</em></h2>
+            <p class="story">Cada explorador esconde <strong>siete gemas</strong> en su yacimiento. Luego intercambian los desafíos: ¡gana quien mejor explore la mina del rival mediante pares ordenados!</p>
+          </div>
+          <div class="homeGems" aria-label="Las siete gemas y sus formas">
+            <div class="catalogTitle">TU COLECCIÓN · 7 MINERALES</div>
+            <div id="homeGemCatalog" class="catalogGrid"></div>
+          </div>
+          <ul>
+            <li><b>Marca las coordenadas</b> para excavar.</li>
+            <li><b>Gemas grises</b> hasta el hallazgo completo.</li>
+            <li><b>Radar geológico</b> cada cinco turnos.</li>
+          </ul>
+<div class="cave-art" aria-hidden="true">
+  <div class="cave-ceiling"></div><div class="cave-glow"></div>
+  <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div>
+  <div class="rock rock-d"></div><div class="hero-crystal hero-crystal-a"></div><div class="hero-crystal hero-crystal-b"></div><div class="hero-crystal hero-crystal-c"></div>
+  <div class="cave-ground"></div>
+ </div>
+        </div>
+        <div class="formbox">
+          <div class="field"><label for="name">Tu nombre</label><input id="name" maxlength="24" value="Explorador" autocomplete="nickname"></div>
+          <div class="selectionLabel">1 · ELIGE CÓMO ENTRAR</div><div class="tabs" role="group" aria-label="Acción inicial">
+            <button id="tabCreate" class="toggle active" type="button">Crear sala</button>
+            <button id="tabJoin" class="toggle" type="button">Unirme</button>
+          </div>
+          <div id="homeCreate" class="home-form">
+            <div class="selectionLabel">2 · MODALIDAD</div>
+            <div class="mode-switch"><button id="modeTimed" class="mode active" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>Contrarreloj</button><button id="modeFree" class="mode" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2M4 4l16 16"/></svg>Sin reloj</button></div>
+            <div id="newMinField" class="field"><label for="newMin">Minutos por jugador</label><input id="newMin" type="number" min="1" max="30" value="10"></div>
+            <button id="createBtn" class="primary" type="button">Crear sala</button>
+          </div>
+          <div id="homeJoin" class="home-form hidden">
+            <div class="field"><label for="roomCode">Código de sala</label><input id="roomCode" class="mono" maxlength="6" autocomplete="one-time-code" placeholder="ABC123"></div>
+            <button id="joinBtn" class="primary" type="button">Entrar a la sala</button>
+          </div>
+          <div id="resumePanel" class="resumePanel hidden"><div class="selectionLabel">SALA EN CURSO</div><p id="resumeText" class="muted small">Puedes regresar a tu sala.</p><button id="resumeBtn" class="primary" type="button">↪ Continuar partida</button><button id="leaveHomeBtn" class="ghost" type="button">Salir de esta sala</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="app" class="view hidden">
+      <div class="roombar">
+        <div class="roominfo">
+          <span class="muted">Sala</span>
+          <span id="roomLabel" class="roomcode">—</span>
+          <button id="shareBtn" class="ghost small" type="button">Compartir</button>
+          <button id="newRoomBtn" class="ghost small" type="button">Salir de sala</button>
+        </div>
+        <div class="roominfo">
+          <span id="modeBadge" class="badge"></span>
+          <span id="phaseBadge" class="badge"></span>
+        </div>
+      </div>
+
+      <div id="setupView" class="hidden">
+        <section class="panel boardPanel">
+          <div class="toprow"><h2 class="setupPhaseTitle"><span>FASE 1</span> · Diseña tu yacimiento</h2><span id="setupStatus" class="badge">0/7</span></div>
+          <div class="boardWrap">
+            <div class="boardBox"><svg id="setupBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero de colocación"></svg></div>
+            <button id="boardBuryBtn" class="boardBuryBtn hidden" type="button" aria-label="Confirmar ubicación de la gema">⛏ Enterrar</button>
+            <div class="boardOverlay"><div id="setupNotice" class="notice hidden"></div></div>
+          </div>
+          <div class="legend"><span class="board-note">Elige, rota y entierra directamente en el tablero.</span><button id="autoBtn" class="secondary" type="button">Al azar</button></div>
+        </section>
+
+        <section class="panel sidePanel">
+          <div class="toprow"><h2>Minerales ocultos</h2><span id="readyCount" class="badge">0/2 listos</span></div>
+          <div class="sideContent">
+            <div class="gemGrid" id="gemList"></div>
+            <div class="compactCard controls">
+              <div class="previewLine"><div><div class="muted small">Gema seleccionada</div><strong id="selectedGemLabel">Perla</strong></div><div id="previewBadge" class="previewBadge">Toca un nodo</div></div>
+              <div class="gemPreviewStage"><svg id="gemPreviewSvg" viewBox="0 0 190 94" role="img" aria-label="Forma y orientación del mineral"></svg></div>
+              <div class="spinRow"><button id="rotateBtn" class="ghost" type="button">↻ Rotar</button><span class="muted small" id="rotationLabel">0°</span><button id="removeBtn" class="ghost" type="button">Retirar</button></div>
+              <div class="footerActions"><button id="clearBtn" class="ghost" type="button">Vaciar todo</button><span class="muted small" style="align-self:center">Confirma en el tablero</span></div>
+            </div>
+            <div class="compactCard setupHint" id="setupHint">Selecciona un mineral, toca un nodo y pulsa «Enterrar» junto a él.</div>
+          </div>
+          <div class="setupFooter"><button id="readyBtn" class="readyPending" type="button">Estoy listo</button><button id="rulesBtn" class="ghost" type="button">Reglas</button></div>
+        </section>
+      </div>
+
+      <div id="playView" class="hidden">
+        <section class="panel boardPanel">
+          <div class="toprow"><h2><span class="phase2tag">FASE 2</span> · Explora el yacimiento rival</h2><span id="turnPill" class="turnPill">Esperando…</span></div>
+          <div class="boardWrap">
+            <div class="boardBox"><svg id="enemyBoard" class="grid" viewBox="0 0 460 460" aria-label="Tablero rival"></svg></div>
+            <div class="boardOverlay"><div id="battleNotice" class="notice hidden"></div></div>
+          </div>
+          <div class="legend"><span class="board-note">Introduce (x, y) para excavar. El plano registra tus hallazgos.</span><span id="coordPreview" class="muted mono">(0, 0)</span></div>
+        </section>
+
+        <section class="panel sidePanel">
+          <div class="toprow"><h2>Bitácora</h2><span id="turnCount" class="badge">Turno 1</span></div>
+          <div class="scoreStack">
+            <div class="scoreCard"><div><div class="muted small" id="meName">Tú</div><strong id="meScore">0 / 26</strong><div class="small" id="meExtra">0 gemas completas</div></div><div id="meClock" class="clock">∞</div></div>
+            <div class="scoreCard"><div><div class="muted small" id="opName">Rival</div><strong id="opScore">0 / 26</strong><div class="small" id="opExtra">0 gemas completas</div></div><div id="opClock" class="clock">∞</div></div>
+          </div>
+          <div class="compactCard actionPanel">
+            <div class="actionModes"><button id="shotModeBtn" class="mode active" type="button">⛏ Excavar</button><button id="radarModeBtn" class="mode" type="button">◈ Radar 3×3</button></div>
+            <div class="coords"><span>(</span><input id="coordX" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada x"><span>,</span><input id="coordY" type="number" min="-5" max="5" value="0" inputmode="numeric" aria-label="Coordenada y"><span>)</span></div>
+            <button id="actionBtn" class="primary bigAction" type="button">⛏ Excavar</button>
+            <div id="actionHint" class="actionHint">Escribe el punto donde quieres excavar.</div>
+          </div>
+          <div class="compactCard">
+            <div class="toprow" style="margin:0 0 8px"><strong>Colección recuperada</strong><span id="completeCount" class="badge">0/7</span></div>
+            <div id="completeList" class="completeList"></div>
+          </div>
+          <div class="infoButtons"><button id="myBoardBtn" class="ghost" type="button">Mi mina</button><button id="historyBtn" class="ghost" type="button">Registro</button><button id="rulesBtn2" class="ghost" type="button">Reglas</button></div>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="countdownOverlay" class="countdownOverlay hidden" aria-live="assertive" aria-label="Cuenta regresiva para iniciar la partida">
+  <div class="countdownHalo"></div><div class="countdownContent"><div class="countdownEyebrow">AMBOS YACIMIENTOS LISTOS</div><div id="countdownNumber" class="countdownNumber">3</div><div id="countdownSubtitle" class="countdownSubtitle">¡Prepárate para excavar!</div></div>
+</div>
+<div id="modalWrap" class="modalWrap" aria-hidden="true">
+  <div class="modal">
+    <div class="modalHeader"><div><strong id="modalTitle">Panel</strong><div id="modalSub" class="muted small"></div></div><button id="closeModalBtn" class="ghost" type="button">Cerrar</button></div>
+    <div class="modalBody">
+      <section class="panel boardPanel" style="padding:12px"><div class="toprow"><h2 id="modalBoardTitle">Mi mina</h2><span id="modalBadge" class="badge"></span></div><div class="boardWrap"><div class="boardBox" style="width:min(100%,62vh)"><svg id="modalBoard" class="grid" viewBox="0 0 460 460"></svg></div></div></section>
+      <section class="panel sidePanel" style="padding:12px"><div class="toprow"><h2 id="modalSideTitle">Detalles</h2></div><div id="modalSide"></div></section>
+    </div>
+  </div>
+</div>
+
+<div id="discovery" class="discovery" aria-live="polite" aria-hidden="true">
+ <div class="discovery-atmosphere"></div><div class="reveal-ray ray1"></div><div class="reveal-ray ray2"></div><div class="reveal-ray ray3"></div>
+ <div class="reveal-glow"></div>
+ <div class="reveal-content"><div class="reveal-eyebrow" id="revealEyebrow">HALLAZGO EXTRAORDINARIO</div>
+ <div id="revealJewel" class="reveal-jewel"></div>
+ <h2 id="revealTitle">¡GEMA COMPLETADA!</h2><p id="revealText">El mineral emerge de la roca.</p>
+ <div class="reveal-meta" id="revealMeta">MINERAL RECONSTRUIDO</div></div>
+ <div id="revealParticles" class="reveal-particles" aria-hidden="true"></div>
+</div>
+<div id="digFx" class="dig-fx" aria-hidden="true"><div class="dig-tool">⛏</div><div class="dig-dust"></div><div class="dig-label" id="digLabel">EXCAVANDO</div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+const GEMS=[
+{id:'perla',name:'Perla',color:'#f27bb7',cells:[[0,0],[1,0]]},
+{id:'topacio',name:'Topacio',color:'#f3a63d',cells:[[0,0],[1,0],[1,1]]},
+{id:'trebol',name:'Trébol',color:'#17b97d',cells:[[0,0],[1,1],[2,0]]},
+{id:'prisma',name:'Prisma',color:'#4d8ef0',cells:[[0,0],[1,0],[2,0],[3,0]]},
+{id:'rubi',name:'Rubí',color:'#ef476f',cells:[[0,0],[1,0],[0,1],[1,1]]},
+{id:'zafiro',name:'Zafiro',color:'#7257ff',cells:[[0,0],[1,0],[2,0],[1,1],[1,2]]},
+{id:'diamante',name:'Diamante',color:'#b365ff',cells:[[1,0],[0,1],[1,1],[2,1],[1,2]]}
+];
+const MIN=-5,MAX=5,TOTAL=26, CELL=34, PAD=60;
+const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=(x,y)=>`${x},${y}`;
+const X=x=>PAD+(x-MIN)*CELL, Y=y=>PAD+(MAX-y)*CELL;
+const save=(k,v)=>{try{localStorage.setItem(k,v)}catch{}}; const load=k=>{try{return localStorage.getItem(k)}catch{return null}};
+let ws=null,state=null,prevState=null,sessionRoom='',myToken='',homeTab='create',createMode='timed',selectedGem='perla',setupRotation=0,setupHover=null,setupAnchor=null,modalKind='',netConnected=false,retryCount=0,battleNoticeTimer=0,radarPulse=null,lastShotPulse=null;
+let discoveryTimeout=null, digFxTimeout=null,showHome=false,setupPendingAction='',countdownEndsAtClient=0,countdownFrame=0;
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),2400);}
+function gemById(id){return GEMS.find(g=>g.id===id)}
+function rotate(cells,r){let pts=cells.map(([x,y])=>[x,y]);for(let i=0;i<((r%4)+4)%4;i++)pts=pts.map(([x,y])=>[-y,x]);const minX=Math.min(...pts.map(p=>p[0])),minY=Math.min(...pts.map(p=>p[1]));return pts.map(([x,y])=>[x-minX,y-minY]);}
+function gemPoints(id,x,y,r){const gem=gemById(id);if(!gem)return [];return rotate(gem.cells,r).map(([dx,dy])=>[x+dx,y+dy]);}
+function localValid(placements,id,x,y,r){const pts=gemPoints(id,x,y,r);const set=new Set(pts.map(([a,b])=>key(a,b)));if(pts.some(([a,b])=>a<MIN||a>MAX||b<MIN||b>MAX))return 'La gema sale del plano';for(const [other,p] of Object.entries(placements||{})){if(other===id)continue;for(const [a,b] of gemPoints(other,p.x,p.y,p.r)){if(set.has(key(a,b)))return 'Se superpone con otra gema';if([[a+1,b],[a-1,b],[a,b+1],[a,b-1]].some(([nx,ny])=>set.has(key(nx,ny))))return 'Toca otra gema por un lado';}}return null;}
+function send(obj){if(ws&&ws.readyState===1)ws.send(JSON.stringify(obj));else toast('Sin conexión al servidor');}
+function setNetStatus(ok){netConnected=ok;$('netStatus').textContent=ok?'● Conectado':'● Sin conexión';$('netStatus').className='pill '+(ok?'online':'offline');}
+function connect(){if(ws&&(ws.readyState===0||ws.readyState===1))return;const proto=location.protocol==='https:'?'wss://':'ws://';ws=new WebSocket(proto+location.host);setNetStatus(false);
+ ws.onopen=()=>{setNetStatus(true);retryCount=0;if(sessionRoom&&myToken)send({type:'join',room:sessionRoom,token:myToken});};
+ ws.onclose=()=>{setNetStatus(false);if(sessionRoom){clearTimeout(connect._t);connect._t=setTimeout(connect,Math.min(10000,1200+retryCount*800));retryCount++;}};
+ ws.onmessage=e=>{let msg;try{msg=JSON.parse(e.data)}catch{return};if(msg.type==='error'){toast(msg.message);return;}if(msg.type==='session'){sessionRoom=msg.room;myToken=msg.token;save('cristalia_'+sessionRoom,myToken);history.replaceState(null,'','?sala='+sessionRoom);return;}if(msg.type==='left'||msg.type==='room_closed'){if(msg.type==='room_closed')toast('La sala fue cerrada por su creador.');leaveClient();return;}if(msg.type==='state'){ingestState(msg);}};
+}
+function ingestState(next){
+ const old=state;prevState=state;state=next;
+ if(setupPendingAction && next.phase==='setup'){
+   const action=setupPendingAction;setupPendingAction='';setupAnchor=null;setupHover=null;
+   if(action==='auto'||action==='reset'){selectedGem='perla';setupRotation=0;}
+   if(action==='place'){const missing=GEMS.find(g=>!next.placements[g.id]);if(missing){selectedGem=missing.id;setupRotation=0;}}
+ }
+ if(next.phase==='countdown'&&old?.phase!=='countdown')countdownEndsAtClient=performance.now()+(next.countdownRemaining||3300);
+ detectEvents(old,next);render();
+}
+function detectEvents(old,next){if(!old||old.phase!==next.phase){if(next.phase==='playing')showNotice(`Comienza la partida. ${next.players[next.active]?.name||'Jugador'} juega primero.`, 'hit', 2400);}if(!old)return;
+ // my new shot
+ const oldHistLen=old.history?.length||0,newHistLen=next.history?.length||0;
+ if(newHistLen>oldHistLen){const last=next.history[newHistLen-1];lastShotPulse={x:Number(last.pos.split(',')[0]),y:Number(last.pos.split(',')[1]),kind:last.hit?'hit':'miss',until:Date.now()+1400};
+   startDigFx(last.hit?'hit':'miss',Number(last.pos.split(',')[0]),Number(last.pos.split(',')[1]));
+   if(last.hit)showNotice('¡Veta mineral localizada!', 'hit', 1900); else showNotice('Solo roca en ese punto.', '', 1450);
+ }
+ const oldCompleted=new Set(old.completed||[]);const gained=(next.completed||[]).filter(id=>!oldCompleted.has(id));if(gained.length){showNotice('¡Gema reconstruida!', 'win', 3200); queueDiscovery(gained[0],false);} 
+ // rival hits on my board
+ const oldOwnHit=(old.ownHits||[]).length,newOwnHit=(next.ownHits||[]).length;
+ if(newOwnHit>oldOwnHit){const pos=next.ownHits[newOwnHit-1];const [x,y]=pos.split(',').map(Number);lastShotPulse={x,y,kind:'rival',until:Date.now()+1500,onOwn:true};showNotice('Tu rival encontró un fragmento de tu yacimiento.', 'alert', 1800); flashMineIndicator();} 
+ const oldRadar=(old.radars||[]).length,newRadar=(next.radars||[]).length;
+ if(newRadar>oldRadar){const r=next.radars[newRadar-1];radarPulse={x:r.x,y:r.y,n:r.n,until:Date.now()+2800};showNotice(`Radar geológico · ${r.n} ${r.n===1?'señal':'señales'} en 9 nodos`, 'win', 3000);} 
+ const oldOwnComp=ownCompleted(old), newOwnComp=ownCompleted(next);const oldOwnSet=new Set(oldOwnComp);const lostMsg=newOwnComp.filter(id=>!oldOwnSet.has(id));if(lostMsg.length){showNotice('El rival completó un mineral de tu mina.', 'alert',2400); queueDiscovery(lostMsg[0],true);}
+ if(old.phase!=='ended'&&next.phase==='ended'){if(next.winner===-1)showNotice('La partida terminó en empate.', 'win', 2800); else if(next.winner===next.me)showNotice('¡Ganaste la partida!', 'win', 2800); else showNotice('La partida terminó. Ganó tu rival.', 'alert', 2800);} }
+function startDigFx(kind='hit',x=0,y=0){
+ const el=$('digFx'),rect=$('enemyBoard').getBoundingClientRect();el.style.left=(rect.left+X(x)/460*rect.width)+'px';el.style.top=(rect.top+Y(y)/460*rect.height-65)+'px';el.style.right='auto';el.className='dig-fx active '+kind;$('digLabel').textContent=kind==='hit'?'¡MINERAL!':'ROCA VACÍA';
+ clearTimeout(digFxTimeout);digFxTimeout=setTimeout(()=>el.classList.remove('active'),1000);
+}
+function flashMineIndicator(){const b=$('myBoardBtn');if(!b)return;b.classList.remove('mine-alert');void b.offsetWidth;b.classList.add('mine-alert');setTimeout(()=>b.classList.remove('mine-alert'),1900);}
+function gem3DMarkup(gem){
+ // The seven crystal silhouettes preserve the actual node geometry. Each facet is shaded with its gem color.
+ const pts=gem.cells;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const mx=Math.min(...xs),my=Math.min(...ys),maxX=Math.max(...xs)-mx,maxY=Math.max(...ys)-my;
+ const scale=Math.min(70,280/Math.max(maxX+1,maxY+1));const totalW=(maxX+1)*scale,totalH=(maxY+1)*scale;let content='';
+ for(const [x,y] of pts){const cx=(x-mx+.5)*scale,cy=(y-my+.5)*scale;const r=scale*.40;
+ content+=`<g transform="translate(${cx},${cy})"><polygon points="0,-${r} ${r*.8},-${r*.30} ${r*.73},${r*.52} 0,${r} -${r*.73},${r*.52} -${r*.8},-${r*.30}" fill="${gem.color}" stroke="#ffffffaa" stroke-width="2"/><path d="M0,-${r} L${r*.21},-${r*.1} L0,${r*.68} L-${r*.23},-${r*.1}Z" fill="#ffffff88"/><path d="M-${r*.8},-${r*.3}L-${r*.23},-${r*.1}L0,${r*.68}L-${r*.73},${r*.52}Z" fill="#00000048"/><path d="M${r*.8},-${r*.3}L${r*.21},-${r*.1}L0,${r*.68}L${r*.73},${r*.52}Z" fill="#00000030"/><path d="M0,-${r}L${r*.8},-${r*.3}L${r*.21},-${r*.1}L-${r*.23},-${r*.1}L-${r*.8},-${r*.3}Z" fill="#ffffff82"/></g>`;
+ }
+ return `<svg viewBox="0 0 ${totalW} ${totalH}" aria-hidden="true"><defs><filter id="gemBloom"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#gemBloom)">${content}</g></svg>`;
+}
+function queueDiscovery(id,rival=false){const gem=gemById(id);if(!gem)return;const el=$('discovery');
+ $('revealEyebrow').textContent=rival?'HALLAZGO DEL EQUIPO RIVAL':'¡HALLAZGO EXTRAORDINARIO!';
+ $('revealTitle').textContent=rival?'¡TU GEMA FUE DESCUBIERTA!':'¡GEMA RECONSTRUIDA!';
+ $('revealText').textContent=rival?`El rival reconstruyó tu ${gem.name}.`:`¡${gem.name}! ${gem.cells.length} nodos recuperados de la roca.`;
+ $('revealMeta').textContent=`${gem.name.toUpperCase()} · ${gem.cells.length} NODOS`;
+ $('revealJewel').innerHTML=gem3DMarkup(gem);
+ el.style.setProperty('--reveal-color',gem.color);el.classList.toggle('rival',rival);el.classList.remove('active');void el.offsetWidth;
+ let pts='';for(let i=0;i<24;i++){const a=(Math.PI*2*i)/24;const len=100+(i%4)*31;const dx=Math.cos(a)*len,dy=Math.sin(a)*len;pts+=`<i style="--dx:${dx.toFixed(1)}px;--dy:${dy.toFixed(1)}px;--delay:${(i%6)*.052}s;--sz:${(i%3+3)}px"></i>`;}$('revealParticles').innerHTML=pts;
+ el.classList.add('active');el.setAttribute('aria-hidden','false');clearTimeout(discoveryTimeout);discoveryTimeout=setTimeout(()=>{el.classList.remove('active');el.setAttribute('aria-hidden','true');},3700);
+}
+function showNotice(text,kind='',duration=2000){const el=$('battleNotice');el.textContent=text;el.className='notice '+kind;el.classList.remove('hidden');clearTimeout(battleNoticeTimer);battleNoticeTimer=setTimeout(()=>el.classList.add('hidden'),duration);}
+function ownCompleted(snapshot){if(!snapshot)return [];const hits=new Set(snapshot.ownHits||[]);return GEMS.filter(g=>{const p=snapshot.placements[g.id];return p&&gemPoints(g.id,p.x,p.y,p.r).every(([x,y])=>hits.has(key(x,y)));}).map(g=>g.id)}
+function fmtClock(ms){if(state?.settings?.mode==='free')return '∞'; let sec=Math.ceil(Math.max(0,ms||0)/1000); return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
+function roomFromUrl(){const q=new URLSearchParams(location.search).get('sala');if(q){$('roomCode').value=q.toUpperCase();homeTab='join';sessionRoom=q.toUpperCase();myToken=load('cristalia_'+sessionRoom)||'';}}
+function enterCreate(){if(state)return toast('Sal de la sala actual antes de crear otra.');const name=$('name').value.trim()||'Explorador';send({type:'create',name,mode:createMode,minutes:Number($('newMin').value)||10});}
+function enterJoin(){if(state)return toast('Sal de la sala actual antes de unirte a otra.');const room=$('roomCode').value.trim().toUpperCase();if(room.length!==6)return toast('Ingresa un código de 6 caracteres.');sessionRoom=room;myToken=load('cristalia_'+room)||'';send({type:'join',room,token:myToken,name:$('name').value.trim()||'Explorador'});}
+function renderHome(){const joining=homeTab==='join';$('resumePanel').classList.toggle('hidden',!state);if(state){$('resumeText').textContent=`Sala ${state.code} · ${state.phase==='setup'?'Preparando yacimientos':state.phase==='countdown'?'Comenzando':state.phase==='playing'?'Partida en curso · el tiempo sigue corriendo':'Partida finalizada'}`;} $('tabCreate').classList.toggle('active',!joining);$('tabJoin').classList.toggle('active',joining);$('homeCreate').classList.toggle('hidden',joining);$('homeJoin').classList.toggle('hidden',!joining);$('modeTimed').classList.toggle('active',createMode==='timed');$('modeFree').classList.toggle('active',createMode==='free');$('newMinField').classList.toggle('hidden',createMode==='free');}
+function drawHomeCatalog(){
+ const el=$('homeGemCatalog');if(!el)return;
+ el.innerHTML=GEMS.map(g=>{
+  const pts=rotate(g.cells,0),maxX=Math.max(...pts.map(p=>p[0]));
+  const maxY=Math.max(...pts.map(p=>p[1]));const unit=12,cx=50-maxX*unit/2,cy=22-maxY*unit/2;
+  const gems=pts.map(([x,y])=>`<path d="M${cx+x*unit} ${cy+y*unit-6} l5.4 6 -5.4 6 -5.4 -6Z" fill="${g.color}" stroke="#fff9" stroke-width=".8"/><path d="M${cx+x*unit} ${cy+y*unit-6}v12" stroke="#fff7" stroke-width=".7"/>`).join('');
+  return `<div class="catalogGem" title="${g.name}: ${g.cells.length} nodos"><svg viewBox="0 0 100 44" aria-hidden="true">${gems}</svg><span>${g.name}</span></div>`;
+ }).join('');
+}
+function setSelectedGem(id){if(state?.players?.[state.me]?.ready)return toast('Retira «Listo» para modificar tu yacimiento.');selectedGem=id;const placed=state?.placements?.[id];setupRotation=placed?placed.r:setupRotation;setupAnchor=placed?{x:placed.x,y:placed.y}:null;setupHover=null;render();}
+function renderGemPreview(){const svg=$('gemPreviewSvg'),g=gemById(selectedGem);if(!svg||!g)return;
+ const pts=rotate(g.cells,setupRotation),maxX=Math.max(...pts.map(p=>p[0])),maxY=Math.max(...pts.map(p=>p[1]));const unit=26;
+ const baseX=95-maxX*unit/2,baseY=47-maxY*unit/2;
+ svg.innerHTML=`<defs><filter id="previewShadow"><feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".6"/></filter></defs><g filter="url(#previewShadow)">${pts.map(([x,y])=>{const a=baseX+x*unit,b=baseY+y*unit;return `<path d="M${a} ${b-12}l11 9 -1 11 -10 9 -10 -9 -1 -11Z" fill="${g.color}" stroke="#fffe" stroke-width="1.2"/><path d="M${a} ${b-12}l2 11 -2 11 -2 -11Z" fill="#fff" opacity=".64"/><path d="M${a-11} ${b-3}l9 2 2 11 -10 -2Z" fill="#000" opacity=".25"/>`;}).join('')}</g>`;
+}
+
+function currentPreview(){if(!state||state.phase!=='setup')return null;const base=setupAnchor||setupHover; if(!base) return null;return {id:selectedGem,x:base.x,y:base.y,r:setupRotation};}
+function setupPreviewStatus(){const preview=currentPreview();if(!preview)return {text:'Toca el tablero',ok:false};const err=localValid(state.placements,preview.id,preview.x,preview.y,preview.r);return err?{text:err,ok:false}:{text:`Vista previa en (${preview.x}, ${preview.y})`,ok:true};}
+function renderGemButtons(){ $('gemList').innerHTML=GEMS.map(g=>{const done=!!state?.placements?.[g.id];return `<button class="gemBtn ${g.id===selectedGem?'selected':''} ${done?'buried':'pending'}" data-gem="${g.id}" type="button"><span class="gemChip" style="background:${g.color}"></span><span><strong>${g.name}</strong><br><span class="muted small">${g.cells.length} nodos · ${done?'Enterrada':'Pendiente'}</span></span></button>`}).join(''); document.querySelectorAll('#gemList [data-gem]').forEach(btn=>btn.onclick=()=>setSelectedGem(btn.dataset.gem)); }
+
+function boardCellFromEvent(svg,ev){const rect=svg.getBoundingClientRect();const px=(ev.clientX-rect.left)/rect.width*460, py=(ev.clientY-rect.top)/rect.height*460;let x=Math.round((px-PAD)/CELL)+MIN, y=MAX-Math.round((py-PAD)/CELL); if(x<MIN||x>MAX||y<MIN||y>MAX)return null; return {x,y};}
+function jewelCell(cx,cy,color,fragment=false,scale=1){
+ const r=13.5*scale;const c=fragment?'#8e9696':color;const opacity=fragment?.86:1;
+ return `<g transform="translate(${cx},${cy})" opacity="${opacity}" filter="url(#jewelDrop)">
+ <polygon points="0,-${r} ${r*.8},-${r*.34} ${r*.72},${r*.58} 0,${r} -${r*.72},${r*.58} -${r*.8},-${r*.34}" fill="${c}" stroke="${fragment?'#d4d6d1':'#f5f6e9'}" stroke-width="1.1"/>
+ <path d="M0,-${r} L${r*.21},-${r*.10} L0,${r*.62} L-${r*.21},-${r*.10}Z" fill="#ffffff" opacity="${fragment?.28:.67}"/>
+ <path d="M-${r*.8},-${r*.34}L-${r*.21},-${r*.1}L0,${r*.62}L-${r*.72},${r*.58}Z" fill="#000" opacity=".32"/>
+ <path d="M${r*.8},-${r*.34}L${r*.21},-${r*.1}L0,${r*.62}L${r*.72},${r*.58}Z" fill="#000" opacity=".20"/>
+ <path d="M0,-${r}L${r*.8},-${r*.34}L${r*.21},-${r*.1}L-${r*.21},-${r*.1}L-${r*.8},-${r*.34}Z" fill="#ffffff" opacity="${fragment?.12:.44}"/>
+ <path d="M-${r*.21},-${r*.1}L${r*.21},-${r*.1}L0,${r*.62}Z" fill="#ffffff" opacity=".12"/>
+ </g>`;
+}
+function baseGrid(){
+ let out=`<defs>
+   <radialGradient id="mineLight" cx="30%" cy="12%" r="85%"><stop offset="0" stop-color="#333e39"/><stop offset=".55" stop-color="#202b28"/><stop offset="1" stop-color="#101b19"/></radialGradient>
+   <filter id="jewelDrop"><feDropShadow dx="0.5" dy="2" stdDeviation="1.7" flood-color="#000" flood-opacity=".7"/></filter>
+   <filter id="seamGlow"><feGaussianBlur stdDeviation="4"/></filter>
+   <linearGradient id="seamA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d19d5d" stop-opacity=".38"/><stop offset="1" stop-color="#6f875c" stop-opacity=".04"/></linearGradient>
+  </defs>
+  <rect x="9" y="9" width="442" height="442" rx="23" fill="url(#mineLight)" stroke="#8c7960" stroke-opacity=".35" stroke-width="1.5"/>
+  <path d="M15 71L78 46 132 68 202 26 289 52 355 28 443 79M14 388L85 416 153 390 222 438 300 399 380 421 444 373" fill="none" stroke="#a58f70" opacity=".18" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M22 258L69 237 105 267 162 240 205 258M267 85L313 69 347 100 396 84 439 106M95 420L128 389 167 397M333 292L356 267 420 280" stroke="url(#seamA)" stroke-width="3" fill="none" opacity=".52"/>
+  <path d="M33 191l26 -16 16 9 22 -11M310 386l22 -22 23 6 19 -10" stroke="#6d7565" stroke-opacity=".28" fill="none" stroke-width="2"/>`;
+ for(let i=MIN;i<=MAX;i++){
+  out+=`<line x1="${X(i)}" y1="${Y(MIN)}" x2="${X(i)}" y2="${Y(MAX)}" stroke="${i===0?'#d8c398':'#789087'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
+  out+=`<line x1="${X(MIN)}" y1="${Y(i)}" x2="${X(MAX)}" y2="${Y(i)}" stroke="${i===0?'#d8c398':'#789087'}" stroke-width="${i===0?2.3:1.05}" opacity="${i===0?.82:.38}"/>`;
+  out+=`<text x="${X(i)}" y="430" text-anchor="middle" font-size="12" font-weight="650" fill="#c5cab6">${i}</text><text x="30" y="${Y(i)+4}" text-anchor="middle" font-size="12" font-weight="650" fill="#c5cab6">${i}</text>`;
+ }
+ for(let x=MIN;x<=MAX;x++)for(let y=MIN;y<=MAX;y++)out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="2.6" fill="#d6c6a3" opacity=".81"/>`;
+ return out;
+}
+function drawSetupBoard(){const svg=$('setupBoard');if(!svg)return;let out=baseGrid();
+ const preview=currentPreview(),isReady=!!state?.players?.[state.me]?.ready;
+ for(const g of GEMS){const pl=state?.placements?.[g.id];if(!pl)continue;
+  // Cuando se mueve una gema, sustituimos su imagen por la vista previa: nunca duplicarla.
+  if(preview&&preview.id===g.id&&!isReady)continue;
+  for(const [x,y] of gemPoints(g.id,pl.x,pl.y,pl.r))out+=jewelCell(X(x),Y(y),g.color,false,1);
+ }
+ if(preview&&!isReady){const err=localValid(state.placements,preview.id,preview.x,preview.y,preview.r);
+  for(const [x,y] of gemPoints(preview.id,preview.x,preview.y,preview.r)){
+   if(x<MIN||x>MAX||y<MIN||y>MAX)continue;
+   out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="17" fill="${err?'rgba(239,71,111,.16)':'rgba(255,255,255,.08)'}" stroke="${err?'#ff6f8b':'#ffe7a6'}" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+   out+=jewelCell(X(x),Y(y),gemById(preview.id).color,false,.92);
+  }
+ }
+ svg.innerHTML=out; if(!setupAnchor || state.players[state.me]?.ready)$('boardBuryBtn').classList.add('hidden');
+ const st=setupPreviewStatus();$('previewBadge').textContent=st.text;$('previewBadge').className='previewBadge '+(preview?(st.ok?'ok':'bad'):'');$('selectedGemLabel').textContent=gemById(selectedGem).name;$('rotationLabel').textContent=`${setupRotation*90}°`;
+ renderGemPreview();requestAnimationFrame(positionBoardBury);
+}
+function positionBoardBury(){const button=$('boardBuryBtn');if(!button||!state||state.phase!=='setup')return;
+ const p=currentPreview(),ready=state.players[state.me]?.ready;
+ if(!setupAnchor||!p||ready){button.classList.add('hidden');return;}
+ const svg=$('setupBoard'),wrap=svg.closest('.boardWrap');
+ if(!svg||!wrap)return;const rect=svg.getBoundingClientRect(),box=wrap.getBoundingClientRect();
+ const px=rect.left-box.left+X(setupAnchor.x)/460*rect.width,py=rect.top-box.top+Y(setupAnchor.y)/460*rect.height;
+ const bw=112,bh=37;const left=Math.min(Math.max(px+21,6),Math.max(6,box.width-bw-6));
+ const top=py+23+bh>box.height?py-bh-23:py+23;
+ button.style.left=`${left}px`;button.style.top=`${Math.max(3,top)}px`;
+ const err=localValid(state.placements,p.id,p.x,p.y,p.r);button.disabled=!!err;button.title=err||'Confirmar enterrado';button.textContent=err?'Ubicación inválida':'⛏ Enterrar';button.classList.remove('hidden');
+}
+
+function drawEnemyBoard(){const svg=$('enemyBoard'); if(!svg) return; let out=baseGrid();
+ // Persistent, subtle radar footprints: retain the nine-node region for later deductions.
+ for(const r of state?.radars||[]){
+  // Mientras está activa la animación, se oculta la huella persistente de ese radar.
+  // Esto evita dos etiquetas numéricas superpuestas en la misma zona 3×3.
+  if(radarPulse && Date.now()<radarPulse.until && r.x===radarPulse.x && r.y===radarPulse.y)continue;
+  out+=`<rect x="${X(r.x-1)-15}" y="${Y(r.y+1)-15}" width="98" height="98" rx="9" fill="#65d99d" fill-opacity=".025" stroke="#71d8a2" stroke-opacity=".42" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  out+=`<rect x="${X(r.x)-9}" y="${Y(r.y+1)-24}" width="18" height="16" rx="4" fill="#2f5745" stroke="#5cb98a" stroke-width=".8"/><text x="${X(r.x)}" y="${Y(r.y+1)-12}" font-size="10" text-anchor="middle" fill="#d6ffdd" font-weight="900">${r.n}</text>`;
+ }
+ // history misses and hits
+ for(const h of state?.history||[]){const [x,y]=h.pos.split(',').map(Number); if(!h.hit) out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`; }
+ for(const [pos,id] of Object.entries(state?.enemyRevealed||{})){const [x,y]=pos.split(',').map(Number); if(id==='fragment') out+=jewelCell(X(x),Y(y),'#b4acba',true,1); else out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1);} 
+ // shot pulse
+ if(lastShotPulse&&Date.now()<lastShotPulse.until&&!lastShotPulse.onOwn){
+ const {x,y,kind}=lastShotPulse;const cx=X(x),cy=Y(y),col=kind==='miss'?'#b5b5a9':'#ffe0a3';
+ out+=`<g class="impact-group" transform="translate(${cx},${cy})"><circle class="impact-ring" r="14" stroke="${col}" stroke-width="3" fill="none"/>`;
+ for(let i=0;i<9;i++){const ang=i*Math.PI*2/9,rad=20+i%3*4,px=Math.cos(ang)*rad,py=Math.sin(ang)*rad;out+=`<circle cx="${px}" cy="${py}" r="${2+(i%3)}" fill="${i%2?'#a8a69b':'#f5d5a2'}" class="dust-bit" style="animation-delay:${i*.04}s"/>`;}
+ out+=`</g>`;
+}
+ if(radarPulse && Date.now()<radarPulse.until){out+=`<rect x="${X(radarPulse.x-1)-17}" y="${Y(radarPulse.y+1)-17}" width="102" height="102" rx="18" fill="rgba(255,236,184,.06)" stroke="#8feec5" stroke-width="2" stroke-dasharray="8 6"/>`; for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++) out+=`<circle class="radar-node pulse" cx="${X(radarPulse.x+dx)}" cy="${Y(radarPulse.y+dy)}" r="10" fill="rgba(143,238,197,.16)" stroke="#8feec5" stroke-width="1.8"/>`; out+=`<g><circle cx="${X(radarPulse.x)}" cy="${Y(radarPulse.y+1)-28}" r="16" fill="rgba(78,145,114,.92)" stroke="#d7fff0" stroke-width="1.7"/><text x="${X(radarPulse.x)}" y="${Y(radarPulse.y+1)-22}" text-anchor="middle" font-size="17" font-weight="900" fill="#f7fffb">${radarPulse.n}</text></g>`; }
+ svg.innerHTML=out; }
+function drawModalBoard(kind){const svg=$('modalBoard'); let out=baseGrid(); if(kind==='myBoard'){for(const [pos,id] of Object.entries(state.ownMap||{})){const [x,y]=pos.split(',').map(Number); out+=jewelCell(X(x),Y(y),gemById(id)?.color||'#fff',false,1);} for(const pos of state.ownHits||[]){const [x,y]=pos.split(',').map(Number); out+=`<circle cx="${X(x)}" cy="${Y(y)}" r="19" fill="none" stroke="#ff9ab1" stroke-width="3" stroke-dasharray="5 4"/>`; if(lastShotPulse&&lastShotPulse.onOwn&&Date.now()<lastShotPulse.until&&lastShotPulse.x===x&&lastShotPulse.y===y) out+=`<circle class="pulse" cx="${X(x)}" cy="${Y(y)}" r="23" fill="none" stroke="#ffd1dc" stroke-width="3"/>`; }
+ }
+ else if(kind==='history'){for(const h of state.history||[]){const [x,y]=h.pos.split(',').map(Number); if(h.hit){const id=state.enemyRevealed[h.pos]||'fragment'; out+=jewelCell(X(x),Y(y),id==='fragment'?'#b4acba':gemById(id)?.color||'#fff',id==='fragment',1);} else out+=`<path d="M${X(x)-7} ${Y(y)-7}l14 14m0-14l-14 14" stroke="#ffd3dc" stroke-width="2.8" stroke-linecap="round"/>`;}}
+ else if(kind==='rules'){/* show empty board only */}
+ svg.innerHTML=out; }
+function openModal(kind){modalKind=kind; $('modalWrap').classList.add('open'); $('modalWrap').setAttribute('aria-hidden','false'); if(kind==='myBoard'){ $('modalTitle').textContent='Mi tablero'; $('modalSub').textContent='Así están ubicadas tus gemas y los impactos recibidos.'; $('modalBoardTitle').textContent='Mis gemas'; $('modalSideTitle').textContent='Resumen'; $('modalBadge').textContent=`${(state.ownHits||[]).length} impactos`; $('modalSide').innerHTML=`<div class="compactCard"><strong>${state.players[state.me].name}</strong><p class="muted small">Gemas dañadas por el rival: <b>${(state.ownHits||[]).length}</b></p><p class="muted small">Gemas completadas por tu rival: <b>${ownCompleted(state).length}</b></p></div><div class="compactCard"><strong>Log</strong><ol class="logList">${(state.log||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`; }
+ if(kind==='history'){ $('modalTitle').textContent='Historial'; $('modalSub').textContent='Tus exploraciones sobre el tablero rival.'; $('modalBoardTitle').textContent='Tiros realizados'; $('modalSideTitle').textContent='Detalle'; $('modalBadge').textContent=`${state.history.length} tiros`; $('modalSide').innerHTML=`<div class="compactCard"><strong>Resumen</strong><p class="muted small">Aciertos: <b>${state.players[state.me].score.points}</b></p><p class="muted small">Fallos: <b>${state.players[state.me].score.misses}</b></p></div><div class="compactCard"><ol class="logList">${state.history.slice().reverse().map(h=>`<li class="mono">(${h.pos}) · ${h.hit?'hallazgo':'sin gema'}</li>`).join('')}</ol></div>`; }
+ if(kind==='rules'){ $('modalTitle').textContent='Reglas rápidas'; $('modalSub').textContent='Resumen compacto de la partida.'; $('modalBoardTitle').textContent='Plano'; $('modalSideTitle').textContent='Cómo se juega'; $('modalBadge').textContent='Ayuda'; $('modalSide').innerHTML=`<div class="compactCard"><ul class="logList"><li>Busca nodos del rival escribiendo pares ordenados.</li><li>El radar 3×3 aparece en los turnos 5, 10, 15…</li><li>Las gemas se muestran grises hasta completarlas.</li><li>Gana quien descubra todas las gemas rivales o tenga más puntos cuando acaben ambos relojes.</li></ul></div>`; }
+ drawModalBoard(kind); }
+function closeModal(){modalKind=''; $('modalWrap').classList.remove('open'); $('modalWrap').setAttribute('aria-hidden','true');}
+function renderPlay(){const me=state.players[state.me], op=state.players[1-state.me]; const myTurn=state.phase==='playing'&&state.active===state.me&&!state.waiting; const canRadar=myTurn&&state.turn%5===0; const end=state.phase==='ended';
+ $('meName').textContent=me.name+' (tú)'; $('opName').textContent=op?op.name:'Rival'; $('meScore').textContent=`${me.score.points} / ${TOTAL}`; $('opScore').textContent=`${op?.score.points||0} / ${TOTAL}`; $('meExtra').textContent=`${me.score.complete}/7 gemas completas`; $('opExtra').textContent=`${op?.score.complete||0}/7 gemas completas`; $('meClock').textContent=fmtClock(state.timers[state.me]); $('opClock').textContent=fmtClock(state.timers[1-state.me]); $('meClock').className='clock '+(state.settings.mode==='timed'?(state.timers[state.me]===0?'over':'live'):''); $('opClock').className='clock '+(state.settings.mode==='timed'?(state.timers[1-state.me]===0?'over':'live'):'');
+ let turnMsg=end?(state.winner===-1?'Empate':state.winner===state.me?'Ganaste':'Turno de tu rival'):(state.waiting?'Conexión pausada':myTurn?'Tu turno':'Turno de '+(op?.name||'tu rival'));
+ $('turnPill').textContent=turnMsg; $('turnPill').className='turnPill '+(state.waiting?'wait':end&&state.winner!==state.me?'alert':''); $('turnCount').textContent=`Turno ${state.turn}`;
+  window._mode=window._mode||'shot'; if(window._mode==='radar'&&!canRadar)window._mode='shot'; $('shotModeBtn').classList.toggle('active',window._mode==='shot'); $('radarModeBtn').classList.toggle('active',window._mode==='radar'); $('radarModeBtn').classList.toggle('radar-ready',canRadar);
+ $('actionBtn').disabled=!myTurn||end; $('radarModeBtn').disabled=!canRadar; $('shotModeBtn').disabled=!myTurn||end; $('coordPreview').textContent=`(${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
+ $('actionBtn').textContent=(window._mode==='radar'?'◈ Activar radar':'⛏ Excavar')+` (${Number($('coordX').value)||0}, ${Number($('coordY').value)||0})`;
+ $('actionHint').textContent=end?'La partida terminó. Puedes revisar tableros o crear otra sala.':state.waiting?'Esperando la reconexión del rival.':window._mode==='radar'?(canRadar?'El radar resaltará esa zona 3×3 y contará señales.':'El radar vuelve a estar disponible en un turno múltiplo de 5.'):'Escribe el punto donde quieres excavar. Si completas una gema, se revelará a color.';
+ $('completeCount').textContent=`${state.completed.length}/7`; $('completeList').innerHTML=GEMS.map(g=>`<div class="completeItem ${state.completed.includes(g.id)?'done':''}"><span class="gemChip" style="background:${state.completed.includes(g.id)?g.color:'#c9bed1'}"></span><span>${state.completed.includes(g.id)?g.name:'Oculta'}</span></div>`).join('');
+ drawEnemyBoard(); }
+function renderSetup(){renderGemButtons();const placed=Object.keys(state.placements).length,me=state.players[state.me],ready=me.ready;
+ $('setupStatus').textContent=`${placed}/7 gemas`;$('readyCount').textContent=`${state.players.filter(Boolean).filter(p=>p.ready).length}/2 listos`;
+ const button=$('readyBtn');button.className=ready?'readyDone':placed===7?'readyActive':'readyPending';button.disabled=false;
+ button.textContent=ready?'✓ Listo · Modificar':placed===7?'✓ ¡Estoy listo!':`🔒 Estoy listo (${placed}/7)`;
+ $('setupHint').textContent=ready?'Esperando al rival. Puedes modificar tus gemas desmarcando «Listo».':placed===7?'Todas las gemas están enterradas. Ya puedes comenzar.':'Elige un mineral, toca un nodo y confirma junto a él.';
+ for(const id of ['rotateBtn','removeBtn','clearBtn','autoBtn'])$(id).disabled=ready;
+ drawSetupBoard();
+}
+function render(){renderHome();const inRoom=!!state;
+ $('home').classList.toggle('hidden',inRoom&&!showHome);$('app').classList.toggle('hidden',!inRoom||showHome);
+ $('homeNavBtn').classList.toggle('hidden',!inRoom||showHome);
+ if(!inRoom){$('countdownOverlay').classList.add('hidden');return;}
+ $('roomLabel').textContent=state.code;
+ $('modeBadge').textContent=state.settings.mode==='timed'?`⏱ ${state.settings.minutes} min/jugador`:'∞ Sin reloj';
+ $('phaseBadge').textContent=state.phase==='setup'?'Preparación':state.phase==='countdown'?'Comienza pronto':state.phase==='playing'?'En juego':'Finalizada';
+ $('setupView').classList.toggle('hidden',state.phase!=='setup');$('playView').classList.toggle('hidden',state.phase==='setup'||state.phase==='countdown');
+ if(state.phase==='setup')renderSetup();else if(state.phase!=='countdown')renderPlay();
+ updateCountdown();if(modalKind)openModal(modalKind);
+}
+function updateCountdown(){const screen=$('countdownOverlay');if(!state||state.phase!=='countdown'||showHome){screen.classList.add('hidden');cancelAnimationFrame(countdownFrame);return;}
+ screen.classList.remove('hidden');const left=Math.max(0,countdownEndsAtClient-performance.now());
+ const count=Math.max(1,Math.min(3,Math.ceil((left-250)/1000)));$('countdownNumber').textContent=left<350?'¡YA!':String(count);
+ $('countdownSubtitle').textContent=left<350?'¡A EXCAVAR!':'¡Prepárate para explorar!';
+ cancelAnimationFrame(countdownFrame);countdownFrame=requestAnimationFrame(updateCountdown);
+}
+function leaveClient(){state=null;prevState=null;showHome=false;sessionRoom='';myToken='';setupAnchor=null;setupHover=null;setupPendingAction='';modalKind='';closeModal();history.replaceState(null,'',location.pathname);render();}
+function leaveRoom(){if(!state)return;const inGame=state.phase==='playing'||state.phase==='countdown';
+ if(!confirm(inGame?'Si sales, abandonarás la partida y ganará tu rival. ¿Confirmas?':'¿Salir de esta sala?'))return;
+ send({type:'leave'});
+}
+
+// interactions
+$('tabCreate').onclick=()=>{homeTab='create';renderHome()}; $('tabJoin').onclick=()=>{homeTab='join';renderHome()}; $('modeTimed').onclick=()=>{createMode='timed';renderHome()}; $('modeFree').onclick=()=>{createMode='free';renderHome()}; $('createBtn').onclick=enterCreate; $('joinBtn').onclick=enterJoin;
+$('homeNavBtn').onclick=()=>{if(!state)return;showHome=true;render();};
+$('resumeBtn').onclick=()=>{showHome=false;render();};
+$('leaveHomeBtn').onclick=leaveRoom;
+$('shareBtn').onclick=async()=>{const url=location.origin+'/?sala='+state.code; try{await navigator.clipboard.writeText(url); toast('Enlace copiado');}catch{prompt('Copia este enlace:',url);}}; $('newRoomBtn').onclick=leaveRoom;
+$('rotateBtn').onclick=()=>{if(state?.players[state.me]?.ready)return;setupRotation=(setupRotation+1)%4;renderSetup();};
+$('removeBtn').onclick=()=>{setupPendingAction='remove';send({type:'remove',id:selectedGem});};
+$('clearBtn').onclick=()=>{setupPendingAction='reset';setupAnchor=null;setupHover=null;send({type:'reset'});};
+$('autoBtn').onclick=()=>{setupPendingAction='auto';setupAnchor=null;setupHover=null;send({type:'auto'});};
+function buryGem(){if(!state||state.phase!=='setup'||state.players[state.me].ready)return;
+ const prev=currentPreview();if(!setupAnchor||!prev)return toast('Toca una posición del tablero primero.');
+ const err=localValid(state.placements,prev.id,prev.x,prev.y,prev.r);if(err)return toast(err);
+ setupPendingAction='place';send({type:'place',id:prev.id,x:prev.x,y:prev.y,r:prev.r});
+}
+$('boardBuryBtn').onclick=buryGem;
+$('readyBtn').onclick=()=>{
+ if(!state||state.phase!=='setup')return;
+ const me=state.players[state.me];
+ if(!me.ready&&Object.keys(state.placements).length!==GEMS.length){
+  const missing=GEMS.filter(g=>!state.placements[g.id]).map(g=>g.name);
+  toast(`Aún debes enterrar: ${missing.join(', ')}.`);return;
+ }
+ setupAnchor=null;setupHover=null;send({type:'ready',value:!me.ready});
+}; $('rulesBtn').onclick=()=>openModal('rules'); $('rulesBtn2').onclick=()=>openModal('rules'); $('myBoardBtn').onclick=()=>openModal('myBoard'); $('historyBtn').onclick=()=>openModal('history'); $('closeModalBtn').onclick=closeModal; $('modalWrap').onclick=e=>{if(e.target=== $('modalWrap')) closeModal();};
+$('shotModeBtn').onclick=()=>{window._mode='shot'; renderPlay();}; $('radarModeBtn').onclick=()=>{if($('radarModeBtn').disabled) return; window._mode='radar'; renderPlay();};
+function performAction(){if($('coordX').value.trim()===''||$('coordY').value.trim()==='')return toast('Escribe las dos coordenadas.'); const x=Number($('coordX').value), y=Number($('coordY').value); if(!Number.isInteger(x)||!Number.isInteger(y)||x<MIN||x>MAX||y<MIN||y>MAX) return toast('Las coordenadas deben ser enteros entre −5 y 5.'); send({type:(window._mode==='radar'?'radar':'shot'),x,y});}
+$('actionBtn').onclick=performAction; ['coordX','coordY'].forEach(id=>{$(id).addEventListener('input',()=>state&&renderPlay()); $(id).addEventListener('keydown',e=>{if(e.key==='Enter')performAction();});});
+$('setupBoard').addEventListener('mousemove',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; setupHover=boardCellFromEvent($('setupBoard'),e); if(!setupAnchor) drawSetupBoard();}); $('setupBoard').addEventListener('mouseleave',()=>{if(!setupAnchor){setupHover=null; drawSetupBoard();}});
+$('setupBoard').addEventListener('click',e=>{if(!state||state.phase!=='setup'||state.players[state.me]?.ready)return; const cell=boardCellFromEvent($('setupBoard'),e); if(!cell) return; const occupant=state.ownMap[key(cell.x,cell.y)]; if(occupant){selectedGem=occupant; setupRotation=state.placements[occupant].r; setupAnchor={x:state.placements[occupant].x,y:state.placements[occupant].y}; renderSetup(); return;} setupAnchor=cell; renderSetup();});
+// Las excavaciones solo se ordenan escribiendo pares ordenados; el tablero de búsqueda no acepta clics.
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
+drawHomeCatalog();roomFromUrl();renderHome();connect();
+</script>
+</body>
+</html>
